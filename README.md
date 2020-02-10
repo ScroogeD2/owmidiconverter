@@ -1,5 +1,5 @@
 # Overwatch MIDI converter
-A tool for converting MIDI files into Overwatch workshop arrays.  
+A tool for converting MIDI files into Overwatch workshop arrays. [Read more](https://workshop.elohell.gg/UyppVEAxuslMuna/Overwatch+MIDI+Pianist/)
 
 If you have any feedback, or if you just want to say hello, you can contact me on Discord: ScroogeD#5147
 
