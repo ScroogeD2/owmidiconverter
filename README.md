@@ -12,7 +12,7 @@ If you have any feedback, or if you just want to say hello, you can contact me o
 - Simultaneously play up to 11 voices
 - Percussion instruments are automatically ignored
 - Notes outside the range of the Overwatch piano are automatically transposed up or down
-- [Loops (experimental)](#Loops-(experimental))
+- [Loops (experimental)](#loops-experimental)
 
 # How to use
 *Currently only available for Overwatch PTR.*
@@ -59,7 +59,7 @@ array[i+N] = pitchN
 
 In the vector element of each chord, Time is the time interval between the current chord and the previous chord, and Pitches is the amount of voices in the current chord.
 
-The Z component of the vector is used for loop information: see [Loops](#Loops-(experimental))
+The Z component of the vector is used for loop information: see [Loops](#loops-experimental)
 
 The elements following the vector are the pitches in the chord. Similar to the pitches of MIDI files, one integer is one semitone. The scale starts at 0 (C1) and ends at 63 (E6). For example, C4 (262hz) has a pitch of 36.
 
