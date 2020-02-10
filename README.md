@@ -4,7 +4,7 @@ A tool for converting MIDI files into Overwatch workshop arrays.
 If you have any feedback, or if you just want to say hello, you can contact me on Discord: ScroogeD#5147
 
 # MIDI converter webpage
-[Click here!](https://scrooged2.github.io/owmidiconverter/midiconverter)
+[Click here!](https://scrooged2.github.io/owmidiconverter/converter)
 
 # Features
 
