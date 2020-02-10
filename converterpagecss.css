@@ -1,58 +1,59 @@
 textarea {
-	resize: vertical;
+    resize: vertical;
+    width: 100%;
 }
 body, textarea {
-	color: #CCCCCC;
-	background-color: #222222;
+    color: #CCCCCC;
+    background-color: #222222;
 }
 a {
-	color: lightblue;
+    color: lightblue;
 }
 .center {
-	width: 35%;
-	margin: 0 auto;
-	text-align: center;
+    width: 35%;
+    margin: 0 auto;
+    text-align: center;
 }
 .options {
-	float: left;
-	width: 100%;
+    float: left;
+    width: 100%;
 }
-.textInput {
-	display: inline-block;
-	float: left;
-	width: 40px;
-	text-align: center;
+.textInput, .checkboxInput {
+    display: inline-block;
+    float: left;
+    width: 40px;
+    text-align: center;
 }
 .tooltipWrapper {
-	display: inline-block;
-	float: left;
-	clear: left;
-	width: 50%;
-	text-align: right;
-	border-bottom: 10px solid transparent;
-	border-right: 5px solid transparent
+    display: inline-block;
+    float: left;
+    clear: left;
+    width: 50%;
+    text-align: right;
+    border-bottom: 10px solid transparent;
+    border-right: 5px solid transparent
 }
 .tooltip {
-	display: inline-block;
-	position: relative;
-	border-bottom: 1px dotted white;
+    display: inline-block;
+    position: relative;
+    border-bottom: 1px dotted white;
 }
 .tooltipText {
-	visibility: hidden;
-	width: 200px;
-	background-color: black;
-	color: #fff;
-	text-align: center;
-	border-radius: 6px;
-	padding: 5px 5px;
-	position: absolute;
-	z-index: 1;
-	top: -5px;
-	right: 105%;
+    visibility: hidden;
+    width: 200px;
+    background-color: black;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 5px;
+    position: absolute;
+    z-index: 1;
+    top: -5px;
+    right: 105%;
 }
 .tooltip:hover .tooltipText {
-	visibility: visible;
+    visibility: visible;
 }
 #scriptOutput-textarea {
-	margin-bottom: 40px;
+    margin-bottom: 40px;
 }

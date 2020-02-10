@@ -16,8 +16,8 @@ const OCTAVE = 12;
 
 const SETTINGS_INFO = Object.freeze({
     startTime:		{MIN:0, MAX:Infinity,   DEFAULT:0},
-    stopTime:		{MIN:0, MAX:Infinity,   DEFAULT:999},
-    maxVoices:		{MIN:1, MAX:11,         DEFAULT:4},
+    stopTime:		{MIN:0, MAX:Infinity,   DEFAULT:100},
+    maxVoices:		{MIN:1, MAX:11,         DEFAULT:6},
     maxElements:	{MIN:12, MAX:999,       DEFAULT:600}
 });
 

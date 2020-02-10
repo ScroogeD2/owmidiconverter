@@ -1,18 +1,3 @@
-<!--
- * This program is free software: you can redistribute it and/or modify  
- * it under the terms of the GNU General Public License as published by  
- * the Free Software Foundation, version 3.
- *
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License 
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
--->
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -24,8 +9,8 @@
 
 <body>
     <div class="center">
-        <a href="https://github.com/">
-            <h1>Overwatch MIDI pianist</h1>
+        <a href="https://github.com/ScroogeD2/owmidiconverter">
+            <h1>Overwatch MIDI converter</h1>
         </a>
 
         <div>
@@ -51,7 +36,7 @@
                         when the script stops reading MIDI data.</span>
                 </div>
             </div>
-            <input class="textInput" type="text" id="stopTimeInput" value="999">
+            <input class="textInput" type="text" id="stopTimeInput" value="100">
 
             <div class="tooltipWrapper">
                 <div class="tooltip">Max Voices:
@@ -60,29 +45,36 @@
                         Fewer voices may result in better performance.</span>
                 </div>
             </div>
-            <input class="textInput" type="text" id="maxVoicesInput" value="4">
+            <input class="textInput" type="text" id="maxVoicesInput" value="6">
 
             <div class="tooltipWrapper">
                 <div class="tooltip">Max Array Elements:
                     <span class="tooltipText">Maximum amount of elements in a single array of the 
                         resulting workshop script that contains the song, between 12 and 999. Fewer elements may cause more 
-                        stuttering, while a high amount of elements may result in too large rule sizes.</span>
+                        frequent stuttering, while a high amount of elements may result in too large rule sizes.</span>
                 </div>
             </div>
             <input class="textInput" type="text" id="maxElementsInput" value="600">
 
+            <div class ="tooltipWrapper">
+                <div class="tooltip">Generate Full Gamemode Settings
+                    <span class="tooltipText">If unchecked, only the workshop rules containing the song will be generated. Make sure to remove all "Song Data" rules before pasting in the new rules.</span>
+                </div>
+            </div>
+            
+            <input class="checkboxInput" type="checkbox" id="includeSettingsCheckBox" checked>
         </div>
 
-        <button onclick="loadFile();" style="float:center">Convert MIDI</button>
+        <button onclick="loadFile();">Convert MIDI</button>
 
         <p>Script info:</p>
-        <textarea id="scriptOutput-textarea" rows="7" style="width:100%;" readonly></textarea>
+        <textarea readonly id="scriptOutput-textarea" rows="7"></textarea>
 
         <p>Copy these settings and paste them to the Custom Game Settings screen:</p>
 
         <!-- todo: fix textarea lag issues with Chrome -->
-        <textarea id="ruleOutput-textarea" rows="3" style="width:100%;" wrap="off" 
-                  autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" readonly></textarea>
+        <textarea readonly id="ruleOutput-textarea" rows="3" wrap="off" 
+                  autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
         <p></p>
         <button id="copyRuleButton" onclick="copyText('ruleOutput-textarea')">Copy to clipboard</button>
     </div>
@@ -151,9 +143,14 @@
 
             try {
                 convertedMidi = convertMidi(mid, settings);
+                let outputText = convertedMidi.rules;
+
+                if (document.getElementById("includeSettingsCheckBox").checked) {
+                    outputText = baseSettings + outputText;
+                }
                 
                 updateElementValue("scriptOutput-textarea", convertedMidi.scriptOutput);
-                updateElementValue("ruleOutput-textarea", baseSettings + convertedMidi.rules + "\n");
+                updateElementValue("ruleOutput-textarea", outputText + "\n");
             }
             catch (error) {
                 updateElementValue("scriptOutput-textarea", "Error: the MIDI file could not be converted.\n")
@@ -174,10 +171,8 @@
             const reader = new FileReader();
 
             reader.onload = function (event) {
-
-                let mid;
                 try {
-                    mid = new Midi(event.target.result);
+                    let mid = new Midi(event.target.result);
                     parseMidi(mid);
                 }
                 catch (error) {
