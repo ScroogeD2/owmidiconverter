@@ -1,0 +1,193 @@
+<!--
+ * This program is free software: you can redistribute it and/or modify  
+ * it under the terms of the GNU General Public License as published by  
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License 
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<meta charset="utf-8">
+
+<head>
+    <link rel="stylesheet" href="converterpagecss.css">
+</head>
+
+<body>
+    <div class="center">
+        <a href="https://github.com/">
+            <h1>Overwatch MIDI pianist</h1>
+        </a>
+
+        <div>
+            <p>Upload .mid file:
+                <input type="file" id="file-input" accept="audio/midi"></input>
+            </p>
+        </div>
+
+        <div class="options">
+            <div class="tooltipWrapper">
+                <div class="tooltip">Start At:
+                    <span class="tooltipText">The time (seconds) in the song
+                        when the script starts reading the MIDI data.
+                        Set to values other than 0
+                        to start reading from different parts of the file.</span>
+                </div>
+            </div>
+            <input class="textInput" type="text" id="startTimeInput" value="0">
+
+            <div class="tooltipWrapper">
+                <div class="tooltip">Stop At:
+                    <span class="tooltipText">The time (seconds) in the song
+                        when the script stops reading MIDI data.</span>
+                </div>
+            </div>
+            <input class="textInput" type="text" id="stopTimeInput" value="999">
+
+            <div class="tooltipWrapper">
+                <div class="tooltip">Max Voices:
+                    <span class="tooltipText">Maximum amount of pitches that will be playing
+                        at any given time, between 1 and 11. If there are more, they are discarded.
+                        Fewer voices may result in better performance.</span>
+                </div>
+            </div>
+            <input class="textInput" type="text" id="maxVoicesInput" value="4">
+
+            <div class="tooltipWrapper">
+                <div class="tooltip">Max Array Elements:
+                    <span class="tooltipText">Maximum amount of elements in a single array of the 
+                        resulting workshop script that contains the song, between 12 and 999. Fewer elements may cause more 
+                        stuttering, while a high amount of elements may result in too large rule sizes.</span>
+                </div>
+            </div>
+            <input class="textInput" type="text" id="maxElementsInput" value="600">
+
+        </div>
+
+        <button onclick="loadFile();" style="float:center">Convert MIDI</button>
+
+        <p>Script info:</p>
+        <textarea id="scriptOutput-textarea" rows="7" style="width:100%;" readonly></textarea>
+
+        <p>Copy these settings and paste them to the Custom Game Settings screen:</p>
+
+        <!-- todo: fix textarea lag issues with Chrome -->
+        <textarea id="ruleOutput-textarea" rows="3" style="width:100%;" wrap="off" 
+                  autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" readonly></textarea>
+        <p></p>
+        <button id="copyRuleButton" onclick="copyText('ruleOutput-textarea')">Copy to clipboard</button>
+    </div>
+
+
+    <script type="text/javascript" src="https://unpkg.com/@tonejs/midi"></script>
+
+    <!-- todo: only import convertMidi and SETTINGS_INFO instead of the whole file -->
+    <script type="text/javascript" src="src/owmidiparser.js"></script>
+    <script type="text/javascript" src="src/owgamemode.txt"></script>
+
+    <script>
+
+        "use strict";
+
+        function copyText(elementId) {
+            document.getElementById(elementId).select();
+            document.execCommand("copy");
+        }
+
+        
+        function getSettings() {
+            let userSettings = {};
+
+            for (let setting in SETTINGS_INFO) {
+
+                let userValue = parseFloat(document.getElementById(setting + "Input").value);
+
+                if (isNaN(userValue)) {
+                    userValue = SETTINGS_INFO[setting]["DEFAULT"];
+                }
+
+                else if (userValue < SETTINGS_INFO[setting]["MIN"]) {
+                    userValue = SETTINGS_INFO[setting]["MIN"];
+                }
+
+                else if (userValue > SETTINGS_INFO[setting]["MAX"]) {
+                    userValue = SETTINGS_INFO[setting]["MAX"];
+                }
+
+                document.getElementById(setting + "Input").value = userValue;
+                userSettings[setting] = userValue;
+            }
+
+            return userSettings;
+        }
+
+
+        function updateElementValue(elementId, newValue, keepOldText = false) {
+            let outputText = "";
+            let oldValue = document.getElementById(elementId).value;
+
+            if (keepOldText) {
+                outputText = oldValue + newValue;
+            } else {
+                outputText = newValue;
+            }
+            document.getElementById(elementId).value = outputText;
+        }
+
+
+        function parseMidi(mid) {
+            const settings = getSettings();
+
+            let convertedMidi = {}
+
+            try {
+                convertedMidi = convertMidi(mid, settings);
+                
+                updateElementValue("scriptOutput-textarea", convertedMidi.scriptOutput);
+                updateElementValue("ruleOutput-textarea", baseSettings + convertedMidi.rules + "\n");
+            }
+            catch (error) {
+                updateElementValue("scriptOutput-textarea", "Error: the MIDI file could not be converted.\n")
+                console.error(error);
+            }
+        }
+
+
+        function loadFile() {
+            let file = document.getElementById("file-input").files[0];
+            if (!file) {
+                return;
+            }
+
+            updateElementValue("scriptOutput-textarea", "")
+            updateElementValue("ruleOutput-textarea", "")
+
+            const reader = new FileReader();
+
+            reader.onload = function (event) {
+
+                let mid;
+                try {
+                    mid = new Midi(event.target.result);
+                    parseMidi(mid);
+                }
+                catch (error) {
+                    updateElementValue("scriptOutput-textarea", "Error: the uploaded file could not be read as a MIDI file.\n")
+                    console.error(error);
+                }
+            }
+            reader.readAsArrayBuffer(file);
+        }
+    </script>
+</body>
+
+</html>
