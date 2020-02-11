@@ -204,7 +204,7 @@ function convertMidi(mid, settings={}) {
                                 including error messages
     */
 
-    if (Object.keys(settings).length != 4) {
+    if (Object.keys(settings).length != Object.keys(SETTINGS_INFO).length) {
         settings = defaultSettings;
     }
 
