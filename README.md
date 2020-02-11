@@ -1,5 +1,6 @@
 # Overwatch MIDI converter
-A tool for converting MIDI files into Overwatch workshop arrays. [Read more](https://workshop.elohell.gg/UyppVEAxuslMuna/Overwatch+MIDI+Pianist/)
+A tool for converting MIDI files into Overwatch workshop arrays. [Read more](https://workshop.elohell.gg/UyppVEAxuslMuna/Overwatch+MIDI+Pianist/)  
+Currently, only the English game version is supported.  
 
 If you have any feedback, or if you just want to say hello, you can contact me on Discord: ScroogeD#5147
 
@@ -15,7 +16,7 @@ If you have any feedback, or if you just want to say hello, you can contact me o
 - [Loops (experimental)](#loops-experimental)
 
 # How to use
-*Currently only available for Overwatch PTR.*
+*Currently only available for Overwatch PTR and only in English.*
 - Open the [MIDI converter webpage.](https://scrooged2.github.io/owmidiconverter/converter)
 - Upload a MIDI file to the webpage, choose your settings (hover over the texts and read the tooltips for more information), and press Convert MIDI.
 
