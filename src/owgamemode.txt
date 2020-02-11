@@ -1,6 +1,11 @@
 // Whitespace and most newlines could be removed, but removing some would break Overwatch's parsing.
 const baseSettings = `settings
 {
+	main
+	{
+		Description: "Overwatch MIDI Pianist mode by ScroogeD. To avoid crashes, make sure to click Back To Lobby if already in game, then start game normally. Convert MIDI songs to Overwatch piano songs with this converter on GitHub: github.com/ScroogeD2/owmidiconverter"
+	}
+
 	lobby
 	{
 		Map Rotation: Paused
@@ -43,8 +48,6 @@ const baseSettings = `settings
 	}
 }
 
-
-
 variables
 {
 	global:
@@ -76,6 +79,14 @@ variables
 subroutines
 {
 	0: checkLoop
+}
+
+rule("By ScroogeD#5147 (Discord)")
+{
+	event
+	{
+		Ongoing - Global;
+	}
 }
 
 rule("Global init")

@@ -17,14 +17,14 @@ const OCTAVE = 12;
 const SETTINGS_INFO = Object.freeze({
     startTime:		{MIN:0, MAX:Infinity,   DEFAULT:0},
     stopTime:		{MIN:0, MAX:Infinity,   DEFAULT:100},
-    maxVoices:		{MIN:1, MAX:11,         DEFAULT:6},
+    maxPitches:		{MIN:1, MAX:11,         DEFAULT:6},
     maxElements:	{MIN:12, MAX:999,       DEFAULT:600}
 });
 
 const defaultSettings = {
     startTime:		SETTINGS_INFO["startTime"]["DEFAULT"],
     stopTime:		SETTINGS_INFO["stopTime"]["DEFAULT"],
-    maxVoices:		SETTINGS_INFO["maxVoices"]["DEFAULT"],
+    maxPitches:		SETTINGS_INFO["maxPitches"]["DEFAULT"],
     maxElements:	SETTINGS_INFO["maxElements"]["DEFAULT"]
 };
 
@@ -83,7 +83,7 @@ function readMidiData(mid, settings) {
             if (chords.has(chordTime)) {
                 if (!chords.get(chordTime).includes(pitch)) {
 
-                    if (chords.get(chordTime).length < settings["maxVoices"]) {
+                    if (chords.get(chordTime).length < settings["maxPitches"]) {
                         chords.get(chordTime).push(pitch);
                     } else {
                         skippedNotes += 1;
@@ -121,7 +121,7 @@ function convertToArray(chords, settings, output) {
     // to a format compatible with Overwatch
 
     // Sort chords.values() by length and get the length of the 0th element 
-    // to get the amount of voices in the largest chord
+    // to get the amount of pitches in the largest chord
     let maxPitches = Array.from(chords.values()
                             ).sort( (a, b) => { return b.length - a.length; }
                             )[0].length;
@@ -204,7 +204,7 @@ function convertMidi(mid, settings={}) {
                                 including error messages
     */
 
-    if (Object.keys(settings).length == 0) {
+    if (Object.keys(settings).length != 4) {
         settings = defaultSettings;
     }
 

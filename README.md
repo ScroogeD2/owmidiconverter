@@ -9,7 +9,7 @@ If you have any feedback, or if you just want to say hello, you can contact me o
 # Features
 
 - Play up to a few minutes of any MIDI file
-- Simultaneously play up to 11 voices
+- Simultaneously play up to 11 pitches
 - Percussion instruments are automatically ignored
 - Notes outside the range of the Overwatch piano are automatically transposed up or down
 - [Loops (experimental)](#loops-experimental)
@@ -63,7 +63,7 @@ The Z component of the vector is used for loop information: see [Loops](#loops-e
 
 The elements following the vector are the pitches in the chord. Similar to the pitches of MIDI files, one integer is one semitone. The scale starts at 0 (C1) and ends at 63 (E6). For example, C4 (262hz) has a pitch of 36.
 
-Each array has its own rule. At the end of each rule, the array is saved in its own index of the SongData array: SongData = [array0, array1, array2, ...]. The maximum amount of pitches needed in any chord is saved in the first element of the first array.
+Each array has its own rule. At the end of each rule, the array is saved in its own index of the SongData array: SongData = [array0, array1, array2, ...]. The maximum amount of voices needed in any chord is saved in the first element of the first array.
 
 ### EXAMPLE
 The following array contains a song that plays the note G4 at time 0, followed by a C minor chord (C5, Eb5, G5) at time 0.5, followed by another G4 note at time 2.0. The maximum amount of voices needed is 3, which is saved as the first element of the whole array:
