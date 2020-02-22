@@ -19,6 +19,7 @@
             </p>
         </div>
 
+        <p>(Hover over the texts for more information)</p>
         <div class="options">
             <div class="tooltipWrapper">
                 <div class="tooltip">Start At:
@@ -58,10 +59,11 @@
 
             <div class="tooltipWrapper">
                 <div class="tooltip">Generate Full Gamemode Settings
-                    <span class="tooltipText">If unchecked, only the workshop rules containing the song will be generated. Make sure to remove all "Song Data" rules before pasting in the new rules.</span>
+                    <span class="tooltipText">If unchecked, only the workshop rules containing the song will be generated. 
+                        Make sure to remove all "Song Data" rules before pasting in the new rules.</span>
                 </div>
             </div>
-            <input class="checkboxInput" type="checkbox" id="includeSettingsCheckBox" checked>
+            <input class="checkboxInput" type="checkbox" id="includeBaseSettingsCheckBox" checked>
         </div>
 
         <button onclick="loadFile();">Convert MIDI</button>
@@ -78,9 +80,11 @@
         <button id="copyRuleButton" onclick="copyText('ruleOutput-textarea')">Copy to clipboard</button>
     </div>
 
+    <!-- Include OverPy for language translations -->
+    <script type="text/javascript" src="https://raw.githubusercontent.com/Zezombye/overpy/master/VS%20Code%20Extension/overpy.js"></script>
 
     <script type="text/javascript" src="https://unpkg.com/@tonejs/midi"></script>
-
+    
     <!-- todo: only import convertMidi and SETTINGS_INFO instead of the whole file -->
     <script type="text/javascript" src="src/owmidiparser.js"></script>
     <script type="text/javascript" src="src/owgamemode.txt"></script>
@@ -142,14 +146,15 @@
 
             try {
                 convertedMidi = convertMidi(mid, settings);
-                let outputText = convertedMidi.rules;
 
-                if (document.getElementById("includeSettingsCheckBox").checked) {
-                    outputText = baseSettings + outputText;
+                let customGameSettings = "";
+                if (document.getElementById("includeBaseSettingsCheckBox").checked) {
+                    customGameSettings += baseSettings;
                 }
+                customGameSettings += convertedMidi.rules;
                 
                 updateElementValue("scriptOutput-textarea", convertedMidi.scriptOutput);
-                updateElementValue("ruleOutput-textarea", outputText + "\n");
+                updateElementValue("ruleOutput-textarea", customGameSettings + "\n");
             }
             catch (error) {
                 updateElementValue("scriptOutput-textarea", "Error: the MIDI file could not be converted.\n")

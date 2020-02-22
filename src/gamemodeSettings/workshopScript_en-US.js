@@ -1,52 +1,5 @@
 // Whitespace and most newlines could be removed, but removing some would break Overwatch's parsing.
-const baseSettings = `settings
-{
-	main
-	{
-		Description: "Overwatch MIDI Pianist mode by ScroogeD. To avoid crashes, make sure to click Back To Lobby if already in game, then start game normally. Convert MIDI songs to Overwatch piano songs with this converter on GitHub: github.com/ScroogeD2/owmidiconverter"
-	}
-
-	lobby
-	{
-		Map Rotation: Paused
-		Match Voice Chat: Enabled
-		Return To Lobby: Never
-	}
-
-	modes
-	{
-		Deathmatch
-		{
-			enabled maps
-			{
-				Paris
-			}
-		}
-
-		General
-		{
-			Game Mode Start: Manual
-			Hero Limit: Off
-			Respawn Time Scalar: 20%
-		}
-	}
-
-	heroes
-	{
-		General
-		{
-			Ability Cooldown Time: 0%
-			Damage Dealt: 500%
-			Damage Received: 500%
-			No Ammunition Requirement: On
-
-			Mei
-			{
-				Ice Wall: Off
-			}
-		}
-	}
-}
+const englishWorkshopScript = `
 
 variables
 {
@@ -126,7 +79,6 @@ rule("Note positions array init")
 
 	actions
 	{
-		"Takes less space than an endless append(append(append))) in a single action"
 		Set Global Variable(notePositions, Empty Array);
 		Modify Global Variable(notePositions, Append To Array, Vector(0, -116.543, 59.952));
 		Modify Global Variable(notePositions, Append To Array, Vector(0, -121.295, 60.051));
@@ -305,7 +257,6 @@ rule("Interact: create dummy bots, start playing")
 	actions
 	{
 		Set Global Variable(songPlaying, 1);
-		"Read max amount of bots needed from the first element of the first data array"
 		While(Compare(Global Variable(i), <, First Of(Value In Array(Global Variable(songData), 0))));
 			Create Dummy Bot(Hero(Symmetra), All Teams, -1.000, Global Variable(pianoPosition), Vector(0, 0, 0));
 			Modify Global Variable(bots, Append To Array, Last Created Entity);
@@ -360,28 +311,23 @@ rule("Play piano")
 
 	actions
 	{
-		"Play loop"
 		While(And(Compare(Global Variable(dataArrayIndex), <, Count Of(Global Variable(songData))), Global Variable(songPlaying)));
 			If(Compare(Add(Global Variable(chordArrayIndex), Y Component Of(Value In Array(Value In Array(Global Variable(songData),
 				Global Variable(dataArrayIndex)), Global Variable(chordArrayIndex)))), >, Count Of(Value In Array(Global Variable(songData),
 				Global Variable(dataArrayIndex)))));
-				"Index out of range, switch to next data array"
 				Modify Global Variable(dataArrayIndex, Add, 1);
 				Set Global Variable(chordArrayIndex, 0);
 			End;
 			Set Player Variable(Global Variable(bots), readNote, True);
-			"Wait time between chords"
 			Wait(Max(Divide(Global Variable(minChordTime), 2), Subtract(Divide(X Component Of(Value In Array(Value In Array(Global Variable(
 				songData), Global Variable(dataArrayIndex)), Global Variable(chordArrayIndex))), Divide(Global Variable(speedPercent), 100)),
 				Divide(Global Variable(minChordTime), 2))), Ignore Condition);
 			Set Player Variable(Global Variable(bots), playNote, True);
 			Wait(Divide(Global Variable(minChordTime), 2), Ignore Condition);
-			"if something in Z component, check what"
 			If(Compare(Z Component Of(Value In Array(Value In Array(Global Variable(songData), Global Variable(dataArrayIndex)),
 				Global Variable(chordArrayIndex))), !=, 0));
 				Call Subroutine(checkLoop);
 			End;
-			"Move to next chord"
 			Modify Global Variable(chordArrayIndex, Add, Add(Y Component Of(Value In Array(Value In Array(Global Variable(songData),
 				Global Variable(dataArrayIndex)), Global Variable(chordArrayIndex))), 1));
 		End;
@@ -406,16 +352,13 @@ rule("Handle loops")
 		Set Global Variable(loopInfo, Z Component Of(Value In Array(Value In Array(Global Variable(songData), Global Variable(
 			dataArrayIndex)), Global Variable(chordArrayIndex))));
 		If(Compare(Global Variable(loopInfo), ==, 2));
-			"Set loop point"
 			Set Global Variable(loopStartIndex, Global Variable(chordArrayIndex));
 			Set Global Variable(loopArrayIndex, Global Variable(dataArrayIndex));
 		Else If(And(Compare(Global Variable(loopInfo), ==, 3), Not(Global Variable(loopCounter))));
-			"Go back to loop point, only once"
 			Set Global Variable(chordArrayIndex, Global Variable(loopStartIndex));
 			Set Global Variable(dataArrayIndex, Global Variable(loopArrayIndex));
 			Modify Global Variable(loopCounter, Add, 1);
 		Else If(Compare(Global Variable(loopInfo), ==, 4));
-			"Go back to loop point, infinite loop"
 			Set Global Variable(chordArrayIndex, Global Variable(loopStartIndex));
 			Set Global Variable(dataArrayIndex, Global Variable(loopArrayIndex));
 		Else;
@@ -443,7 +386,6 @@ rule("Read note")
 		Set Player Variable(Event Player, readNote, False);
 		If(Not(Compare(Player Variable(Event Player, voiceIndex), >, Add(Y Component Of(Value In Array(Value In Array(Global Variable(
 			songData), Global Variable(dataArrayIndex)), Global Variable(chordArrayIndex))), -1.000))));
-			"This bot plays a note in the current chord, read its pitch and set facing towards the correct key"
 			Set Player Variable(Event Player, currentPitch, Value In Array(Value In Array(Global Variable(songData), Global Variable(
 				dataArrayIndex)), Add(Add(Global Variable(chordArrayIndex), Player Variable(Event Player, voiceIndex)), 1)));
 			Set Facing(Event Player, Direction From Angles(Y Component Of(Value In Array(Global Variable(notePositions), Player Variable(

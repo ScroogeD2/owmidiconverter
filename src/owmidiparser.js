@@ -30,10 +30,10 @@ const defaultSettings = {
 
 
 function transposePitch(pitch) {
-    while (pitch < PIANO_RANGE.MIN) {
+    while (pitch < PIANO_RANGE["MIN"]) {
         pitch += OCTAVE;
     }
-    while (pitch > PIANO_RANGE.MAX) {
+    while (pitch > PIANO_RANGE["MAX"]) {
         pitch -= OCTAVE;
     }
     return pitch;
@@ -41,7 +41,7 @@ function transposePitch(pitch) {
 
 
 function roundToPlaces(value, decimalPlaces) {
-    // Todo: validate decimalPlaces maybe?
+    // Todo: validate decimalPlaces?
     return Math.round(value * Math.pow(10, decimalPlaces)) / Math.pow(10, decimalPlaces);
 }
 
@@ -71,26 +71,26 @@ function readMidiData(mid, settings) {
                 continue;
             }
 
-            let pitch = note.midi;
-            if (pitch < PIANO_RANGE.MIN || pitch > PIANO_RANGE.MAX) {
+            let notePitch = note.midi;
+            if (notePitch < PIANO_RANGE["MIN"] || notePitch > PIANO_RANGE["MAX"]) {
                 transposedNotes += 1
-                pitch = transposePitch(pitch);
+                notePitch = transposePitch(pitch);
             }
 
-            pitch -= PIANO_RANGE.MIN;
-            let chordTime = roundToPlaces(note.time, 3);
+            notePitch -= PIANO_RANGE["MIN"];
+            let noteTime = roundToPlaces(note.time, 3);
 
-            if (chords.has(chordTime)) {
-                if (!chords.get(chordTime).includes(pitch)) {
+            if (chords.has(noteTime)) {
+                if (!chords.get(noteTime).includes(notePitch)) {
 
-                    if (chords.get(chordTime).length < settings["maxPitches"]) {
-                        chords.get(chordTime).push(pitch);
+                    if (chords.get(noteTime).length < settings["maxPitches"]) {
+                        chords.get(noteTime).push(notePitch);
                     } else {
                         skippedNotes += 1;
                     }
                 }
             } else {
-                chords.set( chordTime, [pitch] );
+                chords.set( noteTime, [notePitch] );
             }
         }
     }
