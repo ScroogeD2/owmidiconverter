@@ -58,12 +58,34 @@
             <input class="textInput" type="text" id="maxElementsInput" value="600">
 
             <div class="tooltipWrapper">
+                <div class="tooltip">Language:
+                    <span class="tooltipText">Language of the generated workshop script. 
+                        Choose the same language as your game's text language, otherwise the script can't be imported.</span>
+                </div>
+            </div>
+            <select id="languageInput">
+                <option value="en-US">English</option>
+                <option value="de-DE">Deutsch</option>
+                <option value="es-ES">Español (EU)</option>
+                <option value="es-MX">Español (AL)</option>
+                <option value="fr-FR">Français</option>
+                <option value="it-IT">Italiano</option>
+                <option value="ja-JP">日本語</option>
+                <option value="ko-KR">한국어</option>
+                <option value="pl-PL">Polski</option>
+                <option value="pt-BR">Português</option>
+                <option value="ru-RU">Русский</option>
+                <option value="zh-CN">简体中文</option>
+                <option value="zh-TW">繁體中文</option>
+            </select>
+
+            <div class="tooltipWrapper">
                 <div class="tooltip">Generate Full Gamemode Settings
                     <span class="tooltipText">If unchecked, only the workshop rules containing the song will be generated. 
                         Make sure to remove all "Song Data" rules before pasting in the new rules.</span>
                 </div>
             </div>
-            <input class="checkboxInput" type="checkbox" id="includeBaseSettingsCheckBox" checked>
+            <input class="checkboxInput" type="checkbox" id="includeFullSettingsCheckBox" checked>
         </div>
 
         <button onclick="loadFile();">Convert MIDI</button>
@@ -74,25 +96,44 @@
         <p>Copy these settings and paste them to the Custom Game Settings screen:</p>
 
         <!-- todo: fix textarea lag issues with Chrome -->
-        <textarea readonly id="ruleOutput-textarea" rows="3" wrap="off" 
+        <textarea readonly id="ruleOutput-textarea" rows="5" wrap="off" 
                   autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
         <p></p>
         <button id="copyRuleButton" onclick="copyText('ruleOutput-textarea')">Copy to clipboard</button>
     </div>
 
-    <!-- Include OverPy for language translations -->
-    <script type="text/javascript" src="https://raw.githubusercontent.com/Zezombye/overpy/master/VS%20Code%20Extension/overpy.js"></script>
+    <!-- Import OverPy for language translations -->
+    <script src="overpy/doc/actions.js"></script>
+    <script src="overpy/doc/values.js"></script>
+    <script src="overpy/doc/constants.js"></script>
+    <script src="overpy/doc/keywords.js"></script>
+    <script src="overpy/doc/specialFuncDoc.js"></script>
+
+    <script src="overpy/utils/compilation.js"></script>
+    <script src="overpy/utils/decompilation.js"></script>
+    <script src="overpy/utils/logging.js"></script>
+    <script src="overpy/utils/optimization.js"></script>
+    <script src="overpy/utils/other.js"></script>
+    <script src="overpy/utils/translation.js"></script>
+    <script src="overpy/utils/varNames.js"></script>
+
+    <script src="overpy/globalVars.js"></script>
+    <script src="overpy/decompiler.js"></script>
+    <script src="overpy/tokenizer.js"></script>
+    <script src="overpy/compiler.js"></script>
+    <script src="overpy/doc/stringKw.js"></script>
 
     <script type="text/javascript" src="https://unpkg.com/@tonejs/midi"></script>
     
     <!-- todo: only import convertMidi and SETTINGS_INFO instead of the whole file -->
     <script type="text/javascript" src="src/owmidiparser.js"></script>
-    <script type="text/javascript" src="src/owgamemode.txt"></script>
+    <script type="text/javascript" src="src/gamemodeSettings/lobbySettings_AllLanguages.js"></script>
+    <script type="text/javascript" src="src/gamemodeSettings/workshopScript_en-US.js"></script>
 
     <script>
 
         "use strict";
-
+    
         function copyText(elementId) {
             document.getElementById(elementId).select();
             document.execCommand("copy");
@@ -139,19 +180,42 @@
         }
 
 
+        function translateWorkshopScript(script, language) {
+            // Translates by decompiling to OverPy script, 
+            // then compiling back to workshop script in the selected language
+
+            // Add disableUnusedVars to avoid clutter
+            let overpyScript = "#!disableUnusedVars" + decompileAllRules(script);
+
+            return compile(overpyScript, language).result;
+        }
+
+
         function parseMidi(mid) {
             const settings = getSettings();
 
-            let convertedMidi = {}
-
             try {
-                convertedMidi = convertMidi(mid, settings);
+                let convertedMidi = convertMidi(mid, settings);
+                
+                let scriptLanguage = document.getElementById("languageInput").value;
 
+                let workshopScript = "";
                 let customGameSettings = "";
-                if (document.getElementById("includeBaseSettingsCheckBox").checked) {
-                    customGameSettings += baseSettings;
+
+                if (document.getElementById("includeFullSettingsCheckBox").checked) {
+                    workshopScript += baseWorkshopScript;
+                    customGameSettings += lobbySettings[scriptLanguage];
+                } else {
+                    workshopScript += convertedMidiVars;
                 }
-                customGameSettings += convertedMidi.rules;
+
+                workshopScript += convertedMidi.rules;
+
+                if (scriptLanguage != "en-US") {
+                    workshopScript = translateWorkshopScript(workshopScript, scriptLanguage)
+                }
+
+                customGameSettings += workshopScript;
                 
                 updateElementValue("scriptOutput-textarea", convertedMidi.scriptOutput);
                 updateElementValue("ruleOutput-textarea", customGameSettings + "\n");

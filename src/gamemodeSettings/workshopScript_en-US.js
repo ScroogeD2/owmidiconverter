@@ -1,6 +1,17 @@
-// Whitespace and most newlines could be removed, but removing some would break Overwatch's parsing.
-const englishWorkshopScript = `
+// Custom game settings (lobby settings + workshop script) can only be imported 
+// if their language matches the text language of the game.
+// Only the English workshop script is needed, as OverPy can translate it to all other languages.
 
+// Used in case the user chooses to not generate the full gamemode settings.
+const convertedMidiVars = `
+variables
+{
+    global:
+        19: songData
+        20: tempArray
+}`;
+
+const baseWorkshopScript = `
 variables
 {
 	global:

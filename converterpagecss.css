@@ -23,6 +23,11 @@ a {
     height: 16px;
     text-align: center;
 }
+#languageInput {
+    width: 100px;
+    height: 22px;
+    text-align: center;
+}
 .tooltipWrapper {
     justify-self: right;
     border-bottom: 10px solid transparent;

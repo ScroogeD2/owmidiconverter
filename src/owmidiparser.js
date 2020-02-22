@@ -74,7 +74,7 @@ function readMidiData(mid, settings) {
             let notePitch = note.midi;
             if (notePitch < PIANO_RANGE["MIN"] || notePitch > PIANO_RANGE["MAX"]) {
                 transposedNotes += 1
-                notePitch = transposePitch(pitch);
+                notePitch = transposePitch(notePitch);
             }
 
             notePitch -= PIANO_RANGE["MIN"];
