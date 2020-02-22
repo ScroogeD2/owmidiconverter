@@ -64,7 +64,7 @@
                 </div>
             </div>
             <select id="languageInput">
-                <option value="en-US">English</option>
+                <option selected value="en-US">English</option>
                 <option value="de-DE">Deutsch</option>
                 <option value="es-ES">Español (EU)</option>
                 <option value="es-MX">Español (AL)</option>
@@ -187,7 +187,13 @@
             // Add disableUnusedVars to avoid clutter
             let overpyScript = "#!disableUnusedVars" + decompileAllRules(script);
 
-            return compile(overpyScript, language).result;
+            // Compile twice as a temporary workaround 
+            // for a bug where Nulls are sometimes not translated.
+            // It just works.
+            let translatedScript = compile(overpyScript, language).result;
+            translatedScript = compile(overpyScript, language).result;
+
+            return translatedScript;
         }
 
 
