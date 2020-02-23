@@ -1,6 +1,6 @@
 # Overwatch MIDI converter
 A tool for converting MIDI files into Overwatch workshop arrays. [Read more](https://workshop.elohell.gg/UyppVEAxuslMuna/Overwatch+MIDI+Pianist/)  
-All Overwatch text languages are supported ([Note about Japanese and Chinese](#-Import-issues-with-Japanese-(日本語)-and-Chinese-(简体中文))).  
+All Overwatch text languages are supported (See [Known Issues](#known-issues) for a note about Japanese and Chinese).  
 
 If you have any feedback, bug reports, or if you just want to say hello, you can contact me on Discord: ScroogeD#5147
 
