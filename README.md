@@ -1,6 +1,6 @@
 # Overwatch MIDI converter
 A tool for converting MIDI files into Overwatch workshop arrays. [Read more](https://workshop.elohell.gg/UyppVEAxuslMuna/Overwatch+MIDI+Pianist/)  
-All Overwatch text languages are supported (See [Known Issues](#known-issues) for a note about Japanese and Chinese).  
+All Overwatch text languages are supported (See [Known issues](#known-issues) for a note about Japanese and Chinese).  
 
 If you have any feedback, bug reports, or if you just want to say hello, you can contact me on Discord: ScroogeD#5147
 
@@ -25,7 +25,7 @@ If all goes well, you will get some info about the conversion, and a long string
 - Click on *Import Settings* to paste in the copied overwatch custom game settings. In case of an error, check what type it is:
   - **Error popup with "Error: Custom game settings too large":** A workshop rule is too large. This can be fixed by setting a lower value to Max Array Elements.
   - **Error in chat with "Error: Script too large":** Total element count is too large. To fix this, you must select a smaller time range with Start At and Stop At. 
-  - **Other:** Make sure that the text language of Overwatch and the language selected in the MIDI converter match. If your text language is Japanese (日本語) or Chinese (简体中文), [read this.](#-Import-issues-with-Japanese-(日本語)-and-Chinese-(简体中文))
+  - **Other:** Make sure that the text language of Overwatch and the language selected in the MIDI converter match. If your text language is Japanese (日本語) or Chinese (简体中文), [read this.](#known-issues)
 - (*Highly recommended*) To avoid crashes after restarting the custom game, you should press Back To Lobby instead of restarting if you are already in game.
 - Start the custom game.
 
