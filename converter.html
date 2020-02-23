@@ -201,6 +201,7 @@
         function parseMidi(mid) {
             const settings = getSettings();
             let convertedMidi = {};
+            
             try {
                 convertedMidi = convertMidi(mid, settings);
             }
@@ -208,31 +209,32 @@
                 updateElementValue("scriptOutput-textarea", "Error: the MIDI file could not be converted.\n")
                 console.error(error);
             }
-            
-            let scriptLanguage = document.getElementById("languageInput").value;
 
-            let workshopScript = "";
-            let customGameSettings = "";
+            if (convertedMidi.rules != "") {
+                let scriptLanguage = document.getElementById("languageInput").value;
+                let workshopScript = "";
+                let customGameSettings = "";
 
-            if (document.getElementById("includeFullSettingsCheckBox").checked) {
-                workshopScript += baseWorkshopScript;
-                customGameSettings += lobbySettings[scriptLanguage];
+                if (document.getElementById("includeFullSettingsCheckBox").checked) {
+                    workshopScript += baseWorkshopScript;
+                    customGameSettings += lobbySettings[scriptLanguage];
+                } else {
+                    workshopScript += convertedMidiVars;
+                }
+
+                workshopScript += convertedMidi.rules;
+
+                if (scriptLanguage != "en-US") {
+                    workshopScript = translateWorkshopScript(workshopScript, scriptLanguage)
+                }
+
+                customGameSettings += workshopScript;
+
+                updateElementValue("scriptOutput-textarea", convertedMidi.scriptOutput);
+                updateElementValue("ruleOutput-textarea", customGameSettings + "\n");
             } else {
-                workshopScript += convertedMidiVars;
+                updateElementValue("scriptOutput-textarea", convertedMidi.scriptOutput);
             }
-
-            workshopScript += convertedMidi.rules;
-
-            if (scriptLanguage != "en-US") {
-                workshopScript = translateWorkshopScript(workshopScript, scriptLanguage)
-            }
-
-            customGameSettings += workshopScript;
-
-            updateElementValue("scriptOutput-textarea", convertedMidi.scriptOutput);
-            updateElementValue("ruleOutput-textarea", customGameSettings + "\n");
-
-
         }
 
 
