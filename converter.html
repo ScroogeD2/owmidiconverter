@@ -185,52 +185,54 @@
             // Translates by decompiling to OverPy script, 
             // then compiling back to workshop script in the selected language
 
-            // Add disableUnusedVars to avoid clutter
-            let overpyScript = "#!disableUnusedVars" + decompileAllRules(script);
+            try {
+                // Add disableUnusedVars to avoid clutter
+                let overpyScript = "#!disableUnusedVars" + decompileAllRules(script);
 
-            // Compile twice as a temporary workaround 
-            // for a bug where Nulls are sometimes not translated.
-            // It just works.
-            let translatedScript = compile(overpyScript, language).result;
-            translatedScript = compile(overpyScript, language).result;
-
-            return translatedScript;
+                return compile(overpyScript, language).result;
+            }
+            catch (error) {
+                updateElementValue("scriptOutput-textarea", "Error: the MIDI file could not be translated.\n")
+                console.error(error);
+            }
         }
 
 
         function parseMidi(mid) {
             const settings = getSettings();
-
+            let convertedMidi = {};
             try {
-                let convertedMidi = convertMidi(mid, settings);
-                
-                let scriptLanguage = document.getElementById("languageInput").value;
-
-                let workshopScript = "";
-                let customGameSettings = "";
-
-                if (document.getElementById("includeFullSettingsCheckBox").checked) {
-                    workshopScript += baseWorkshopScript;
-                    customGameSettings += lobbySettings[scriptLanguage];
-                } else {
-                    workshopScript += convertedMidiVars;
-                }
-
-                workshopScript += convertedMidi.rules;
-
-                if (scriptLanguage != "en-US") {
-                    workshopScript = translateWorkshopScript(workshopScript, scriptLanguage)
-                }
-
-                customGameSettings += workshopScript;
-                
-                updateElementValue("scriptOutput-textarea", convertedMidi.scriptOutput);
-                updateElementValue("ruleOutput-textarea", customGameSettings + "\n");
+                convertedMidi = convertMidi(mid, settings);
             }
             catch (error) {
                 updateElementValue("scriptOutput-textarea", "Error: the MIDI file could not be converted.\n")
                 console.error(error);
             }
+            
+            let scriptLanguage = document.getElementById("languageInput").value;
+
+            let workshopScript = "";
+            let customGameSettings = "";
+
+            if (document.getElementById("includeFullSettingsCheckBox").checked) {
+                workshopScript += baseWorkshopScript;
+                customGameSettings += lobbySettings[scriptLanguage];
+            } else {
+                workshopScript += convertedMidiVars;
+            }
+
+            workshopScript += convertedMidi.rules;
+
+            if (scriptLanguage != "en-US") {
+                workshopScript = translateWorkshopScript(workshopScript, scriptLanguage)
+            }
+
+            customGameSettings += workshopScript;
+
+            updateElementValue("scriptOutput-textarea", convertedMidi.scriptOutput);
+            updateElementValue("ruleOutput-textarea", customGameSettings + "\n");
+
+
         }
 
 
