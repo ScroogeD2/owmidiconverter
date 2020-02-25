@@ -14,14 +14,14 @@ const PIANO_RANGE = Object.freeze({
 });
 const OCTAVE = 12;
 
-const SETTINGS_INFO = Object.freeze({
+const CONVERTER_SETTINGS_INFO = Object.freeze({
     startTime:		{MIN:0, MAX:Infinity,   DEFAULT:0},
     stopTime:		{MIN:0, MAX:Infinity,   DEFAULT:100},
     maxPitches:		{MIN:1, MAX:11,         DEFAULT:6},
     maxElements:	{MIN:12, MAX:999,       DEFAULT:600}
 });
 
-const defaultSettings = {
+const DEFAULT_SETTINGS = {
     startTime:		SETTINGS_INFO["startTime"]["DEFAULT"],
     stopTime:		SETTINGS_INFO["stopTime"]["DEFAULT"],
     maxPitches:		SETTINGS_INFO["maxPitches"]["DEFAULT"],
@@ -133,8 +133,9 @@ function convertToArray(chords, settings, output) {
     // Time of first note
     let prevTime = chords.keys().next().value;
     let currentArray = 0;
-    for (let [time, pitches] of chords.entries()) {
+    for (let [chordTime, pitches] of chords.entries()) {
 
+        // if currentArray is too long, create a new one
         if (1 + pitches.length + owArrays[currentArray].length > settings["maxElements"]) {
             owArrays.push( [] );
             currentArray += 1;
@@ -142,14 +143,14 @@ function convertToArray(chords, settings, output) {
 
         // One chord in the song consists of 
         // A) "Vector(timeSinceLastChord, amountOfPitchesInChord, 0)"
-        owArrays[currentArray].push(`Vector(${roundToPlaces(time - prevTime, 3)},` +
+        owArrays[currentArray].push(`Vector(${roundToPlaces(chordTime - prevTime, 3)},` +
                                    `${pitches.length},0)`);
         // and B) the pitches in that chord
         for (let pitch of pitches.sort()) {
             owArrays[currentArray].push(pitch);
         }
         
-        prevTime = time;
+        prevTime = chordTime;
     }
 
     let totalElements = owArrays.reduce( (a, b) => { return a + b.length; }, 0 );
@@ -195,7 +196,7 @@ function convertMidi(mid, settings={}) {
     /*
     param mid:  a Midi object created by Tonejs/Midi
     param settings: a JS object containing user parameters for 
-                    parsing the midi data, see defaultSettings for an example
+                    parsing the midi data, see DEFAULT_SETTINGS for an example
 
     Return: a JS object { rules, scriptOutput }, containing:
         string rules:    Overwatch workshop rules containing the song Data,
@@ -204,8 +205,8 @@ function convertMidi(mid, settings={}) {
                                 including error messages
     */
 
-    if (Object.keys(settings).length != Object.keys(SETTINGS_INFO).length) {
-        settings = defaultSettings;
+    if (Object.keys(settings).length != Object.keys(CONVERTER_SETTINGS_INFO).length) {
+        settings = DEFAULT_SETTINGS;
     }
 
     let chordInfo = readMidiData(mid, settings);

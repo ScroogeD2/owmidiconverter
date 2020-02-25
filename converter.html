@@ -53,7 +53,8 @@
                 <div class="tooltip">Max Array Elements:
                     <span class="tooltipText">Maximum amount of elements in a single array of the 
                         resulting workshop script that contains the song, between 12 and 999. Fewer elements may cause more 
-                        frequent stuttering, while a high amount of elements may result in too large rule sizes.</span>
+                        frequent stuttering, while a high amount of elements may result in too large rule sizes. 
+                        If unsure, use the default value</span>
                 </div>
             </div>
             <input class="textInput" type="text" id="maxElementsInput" value="600">
@@ -66,18 +67,18 @@
             </div>
             <select id="languageInput">
                 <option selected value="en-US">English</option>
-                <option value="de-DE">Deutsch</option>
                 <option value="es-ES">Español (EU)</option>
                 <option value="es-MX">Español (AL)</option>
-                <option value="fr-FR">Français</option>
                 <option value="it-IT">Italiano</option>
+                <option value="ru-RU">Русский</option>
+                <option value="pl-PL">Polski</option>
+                <option value="fr-FR">Français</option>
+                <option value="de-DE">Deutsch</option>
+                <option value="pt-BR">Português</option>
                 <option value="ja-JP">日本語</option>
                 <option value="ko-KR">한국어</option>
-                <option value="pl-PL">Polski</option>
-                <option value="pt-BR">Português</option>
-                <option value="ru-RU">Русский</option>
-                <option value="zh-CN">简体中文</option>
                 <option value="zh-TW">繁體中文</option>
+                <option value="zh-CN">简体中文</option>
             </select>
 
             <div class="tooltipWrapper">
@@ -126,7 +127,7 @@
 
     <script type="text/javascript" src="https://unpkg.com/@tonejs/midi"></script>
     
-    <!-- todo: only import convertMidi and SETTINGS_INFO instead of the whole file -->
+    <!-- todo: only import convertMidi and CONVERTER_SETTINGS_INFO instead of the whole file -->
     <script type="text/javascript" src="src/owmidiparser.js"></script>
     <script type="text/javascript" src="src/gamemodeSettings/lobbySettings_AllLanguages.js"></script>
     <script type="text/javascript" src="src/gamemodeSettings/workshopScript_en-US.js"></script>
@@ -134,6 +135,12 @@
     <script>
 
         "use strict";
+
+        const ERRORS = {
+            MIDI_CONVERTER_ERROR: "Error: the MIDI file could not be converted.\n",
+            TRANSLATION_ERROR: "Error: the generated workshop script could not be translated.\n",
+            FILE_FORMAT_ERROR: "Error: the uploaded file could not be read as a MIDI file.\n"
+        };
     
         function copyText(elementId) {
             document.getElementById(elementId).select();
@@ -142,22 +149,25 @@
 
         
         function getSettings() {
+            // Reads the values in the webpage input fields, 
+            // ensures that they're in the correct numerical ranges
+
             let userSettings = {};
 
-            for (let setting in SETTINGS_INFO) {
+            for (let setting in CONVERTER_SETTINGS_INFO) {
 
                 let userValue = parseFloat(document.getElementById(setting + "Input").value);
 
                 if (isNaN(userValue)) {
-                    userValue = SETTINGS_INFO[setting]["DEFAULT"];
+                    userValue = CONVERTER_SETTINGS_INFO[setting]["DEFAULT"];
                 }
 
-                else if (userValue < SETTINGS_INFO[setting]["MIN"]) {
-                    userValue = SETTINGS_INFO[setting]["MIN"];
+                else if (userValue < CONVERTER_SETTINGS_INFO[setting]["MIN"]) {
+                    userValue = CONVERTER_SETTINGS_INFO[setting]["MIN"];
                 }
 
-                else if (userValue > SETTINGS_INFO[setting]["MAX"]) {
-                    userValue = SETTINGS_INFO[setting]["MAX"];
+                else if (userValue > CONVERTER_SETTINGS_INFO[setting]["MAX"]) {
+                    userValue = CONVERTER_SETTINGS_INFO[setting]["MAX"];
                 }
 
                 document.getElementById(setting + "Input").value = userValue;
@@ -169,6 +179,8 @@
 
 
         function updateElementValue(elementId, newValue, keepOldText = false) {
+            // Updates text in a webpage element.
+
             let outputText = "";
             let oldValue = document.getElementById(elementId).value;
 
@@ -192,40 +204,43 @@
                 return compile(overpyScript, language).result;
             }
             catch (error) {
-                updateElementValue("scriptOutput-textarea", "Error: the MIDI file could not be translated.\n")
+                updateElementValue("scriptOutput-textarea", ERRORS["TRANSLATION_ERROR"]);
                 console.error(error);
             }
         }
 
 
         function parseMidi(mid) {
-            const settings = getSettings();
+            const converterSettings = getSettings();
             let convertedMidi = {};
             
             try {
-                convertedMidi = convertMidi(mid, settings);
+                convertedMidi = convertMidi(mid, converterSettings);
             }
             catch (error) {
-                updateElementValue("scriptOutput-textarea", "Error: the MIDI file could not be converted.\n")
+                updateElementValue("scriptOutput-textarea", ERRORS["MIDI_CONVERTER_ERROR"]);
                 console.error(error);
             }
 
             if (convertedMidi.rules != "") {
                 let scriptLanguage = document.getElementById("languageInput").value;
-                let workshopScript = "";
+
+                // CustomGameSettings consists of lobbySettings and workshopScript
                 let customGameSettings = "";
+                let workshopScript = "";
 
                 if (document.getElementById("includeFullSettingsCheckBox").checked) {
                     workshopScript += baseWorkshopScript;
                     customGameSettings += lobbySettings[scriptLanguage];
                 } else {
+                    // Only add variables used in the workshop rules generated by the converter
                     workshopScript += convertedMidiVars;
                 }
 
                 workshopScript += convertedMidi.rules;
 
                 if (scriptLanguage != "en-US") {
-                    workshopScript = translateWorkshopScript(workshopScript, scriptLanguage)
+                    workshopScript = translateWorkshopScript(workshopScript, scriptLanguage);
                 }
 
                 customGameSettings += workshopScript;
@@ -244,8 +259,8 @@
                 return;
             }
 
-            updateElementValue("scriptOutput-textarea", "")
-            updateElementValue("ruleOutput-textarea", "")
+            updateElementValue("scriptOutput-textarea", "");
+            updateElementValue("ruleOutput-textarea", "");
 
             const reader = new FileReader();
 
@@ -255,7 +270,7 @@
                     parseMidi(mid);
                 }
                 catch (error) {
-                    updateElementValue("scriptOutput-textarea", "Error: the uploaded file could not be read as a MIDI file.\n")
+                    updateElementValue("scriptOutput-textarea", ERRORS["FILE_FORMAT_ERROR"]);
                     console.error(error);
                 }
             }
