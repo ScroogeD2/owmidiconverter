@@ -34,6 +34,7 @@ variables
 subroutines
 {
 	0: checkLoop
+	1: destroyBots
 }
 
 rule("By ScroogeD#5147 (Discord)")
@@ -259,12 +260,19 @@ rule("Interact: create dummy bots, start playing")
 	actions
 	{
 		Set Global Variable(songPlaying, 1);
-		While(Compare(Global Variable(i), <, First Of(Value In Array(Global Variable(songData), 0))));
-			Create Dummy Bot(Hero(Symmetra), All Teams, -1.000, Global Variable(pianoPosition), Vector(0, 0, 0));
-			Modify Global Variable(bots, Append To Array, Last Created Entity);
-			Set Player Variable(Last Of(Global Variable(bots)), voiceIndex, Global Variable(i));
-			Modify Global Variable(i, Add, 1);
+		Set Global Variable(i, 11);
+		While(And(Compare(Count Of(Global Variable(bots)), <, First Of(First Of(Global Variable(songData)))), Compare(Global Variable(i),
+			>, 0)));
+			If(Not(Entity Exists(Players In Slot(Global Variable(i), All Teams))));
+				Create Dummy Bot(Hero(Symmetra), All Teams, Global Variable(i), Global Variable(pianoPosition), Vector(0, 0, 0));
+				Modify Global Variable(bots, Append To Array, Last Created Entity);
+			End;
+			Modify Global Variable(i, Subtract, 1);
 			Wait(0.016, Ignore Condition);
+		End;
+		Set Global Variable(i, 0);
+		For Global Variable(i, 0, Count Of(Global Variable(bots)), 1);
+			Set Player Variable(Value In Array(Global Variable(bots), Global Variable(i)), voiceIndex, Global Variable(i));
 		End;
 		Set Global Variable(i, 0);
 		Wait(2.500, Ignore Condition);
@@ -291,7 +299,7 @@ rule("Interact: stop playing")
 	actions
 	{
 		Set Global Variable(bots, Empty Array);
-		Destroy All Dummy Bots;
+		Call Subroutine(destroyBots);
 		Set Global Variable(dataArrayIndex, 0);
 		Wait(1, Ignore Condition);
 		Set Global Variable(songPlaying, 0);
@@ -336,7 +344,7 @@ rule("Play piano")
 		Set Global Variable(songPlaying, 0);
 		Set Global Variable(chordArrayIndex, 1);
 		Set Global Variable(dataArrayIndex, 0);
-		Destroy All Dummy Bots;
+		Call Subroutine(destroyBots);
 		Set Global Variable(bots, Empty Array);
 	}
 }
@@ -420,6 +428,24 @@ rule("Play note")
 			Stop Holding Button(Event Player, Primary Fire);
 		End;
 		Set Player Variable(Event Player, playNote, False);
+	}
+}
+
+rule("Destroy bots (workaround for Destroy All Dummy Bots bug)")
+{
+	event
+	{
+		Subroutine;
+		destroyBots;
+	}
+
+	actions
+	{
+		Set Global Variable(i, 0);
+		For Global Variable(i, 0, 12, 1);
+			Destroy Dummy Bot(All Teams, Global Variable(i));
+		End;
+		Set Global Variable(i, 0);
 	}
 }`;
 
