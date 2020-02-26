@@ -22,10 +22,14 @@ const CONVERTER_SETTINGS_INFO = Object.freeze({
 });
 
 const DEFAULT_SETTINGS = {
-    startTime:		SETTINGS_INFO["startTime"]["DEFAULT"],
-    stopTime:		SETTINGS_INFO["stopTime"]["DEFAULT"],
-    maxPitches:		SETTINGS_INFO["maxPitches"]["DEFAULT"],
-    maxElements:	SETTINGS_INFO["maxElements"]["DEFAULT"]
+    startTime:		CONVERTER_SETTINGS_INFO["startTime"]["DEFAULT"],
+    stopTime:		CONVERTER_SETTINGS_INFO["stopTime"]["DEFAULT"],
+    maxPitches:		CONVERTER_SETTINGS_INFO["maxPitches"]["DEFAULT"],
+    maxElements:	CONVERTER_SETTINGS_INFO["maxElements"]["DEFAULT"]
+};
+
+const WARNINGS = {
+    TYPE_0_FILE: "WARNING: The processed file is a type 0 file and may have been converted incorrectly.\n"
 };
 
 
@@ -95,38 +99,43 @@ function readMidiData(mid, settings) {
         }
     }
 
+    let maxPitches = 0;
     let output = "";
 
     if (chords.size == 0) {
         output += `Error: no notes found in MIDI file between ` +
                   `${settings["startTime"]} seconds ` +
-                  `and ${settings["stopTime"]} seconds.`;
+                  `and ${settings["stopTime"]} seconds.\n`;
     } else {
         output += `${skippedNotes} note(s) left out ` +
                   `due to too many overlapping pitches\n` +
                   `${transposedNotes} note(s) transposed\n`;
 
+        // Sort chords.values() by length and get the length of the 0th element 
+        // to get the amount of pitches in the largest chord
+        maxPitches = Array.from(chords.values()
+                            ).sort( (a, b) => { return b.length - a.length; }
+                            )[0].length;
+        output += `${maxPitches} voice(s)\n\n`;
+            
         // Sort by keys (times)
         chords = new Map([...chords.entries()].sort( (time1, time2) => 
                                                     { return roundToPlaces(parseFloat(time1) 
                                                       - parseFloat(time2), 3) } ));
     }
 
-    return { chords, output };
+    if (mid.tracks.length == 1) {
+        // Type 0 midi files have only one track
+        output += WARNINGS["TYPE_0_FILE"];
+    }
+
+    return { chords, output, maxPitches };
 }
 
 
-function convertToArray(chords, settings, output) {
+function convertToArray(chords, settings, output, maxPitches) {
     // Converts the contents of the chords map 
     // to a format compatible with Overwatch
-
-    // Sort chords.values() by length and get the length of the 0th element 
-    // to get the amount of pitches in the largest chord
-    let maxPitches = Array.from(chords.values()
-                            ).sort( (a, b) => { return b.length - a.length; }
-                            )[0].length;
-    
-    output += `${maxPitches} voice(s)\n\n`;
 
     let owArrays = [ [maxPitches] ];
 
@@ -214,7 +223,8 @@ function convertMidi(mid, settings={}) {
     let scriptOutput = chordInfo.output;
 
     if (chordInfo.chords.size != 0) {
-        let arrayInfo = convertToArray(chordInfo.chords, settings, chordInfo.output);
+        let arrayInfo = convertToArray(chordInfo.chords, settings, 
+                                       chordInfo.output, chordInfo.maxPitches);
 
         scriptOutput = arrayInfo.output;
         rules = writeWorkshopRules(arrayInfo.owArrays);
