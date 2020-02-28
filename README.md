@@ -19,7 +19,7 @@ If you have any feedback, bug reports, or if you just want to say hello, you can
 - Open the [MIDI converter webpage.](https://scrooged2.github.io/owmidiconverter/converter)
 - Upload a MIDI (.mid) file to the webpage, choose your settings (hover over the texts and read the tooltips for more information), and click Convert MIDI.
   - Make sure to select a language that matches the text language of your Overwatch. If you don't, the generated script can't be pasted into the game.
-  - If you get a warning about a type 0 file, keep in mind that percussion may still exist in the converted data, causing the bots to play wrong notes.
+  - If you get a warning about a type 0 file, keep in mind that percussion may still exist in the converted data, causing the bots to play wrong notes. See #1 for more information.
 
 If all goes well, you will get some info about the conversion, and a long string containing the custom game settings of the mode. Copy the string by pressing Copy to Clipboard, then open the Overwatch custom game settings screen.![gameSettingsImage](https://i.imgur.com/OqkaGqe.png)  
 
@@ -27,7 +27,6 @@ If all goes well, you will get some info about the conversion, and a long string
   - **Error popup with "Error: Custom game settings too large":** A workshop rule is too large. This can be fixed by setting a lower value to Max Array Elements.
   - **Error in chat with "Error: Script too large":** Total element count is too large. To fix this, you must select a smaller time range with Start At and Stop At. 
   - **Other:** Make sure that the text language of Overwatch and the language selected in the MIDI converter match. If your text language is Japanese (日本語) or Chinese (简体中文), [read this.](#known-issues)
-- (*Highly recommended*) To avoid crashes after restarting the custom game, you should press Back To Lobby instead of restarting if you are already in game.
 - Start the custom game.
 
 
