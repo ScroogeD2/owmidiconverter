@@ -908,7 +908,6 @@ var actionKw =
         "guid": "00000000CC21",
         "es-MX": "Destruir robot de entrenamiento",
         "fr-FR": "Détruire une I.A.",
-        "it-IT": "Distruggi bot di prova",
         "ja-JP": "ダミーボットを破壊する",
         "pl-PL": "Zniszcz atrapę bota",
         "pt-BR": "Destruir Bot",
