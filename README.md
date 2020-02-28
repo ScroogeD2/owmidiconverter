@@ -17,9 +17,9 @@ If you have any feedback, bug reports, or if you just want to say hello, you can
 
 # How to use
 - Open the [MIDI converter webpage.](https://scrooged2.github.io/owmidiconverter/converter)
-- Upload a MIDI file to the webpage, choose your settings (hover over the texts and read the tooltips for more information), and click Convert MIDI.
-
-*If you get a warning about a type 0 file, keep in mind that percussion may still exist in the converted data, causing the bots to play wrong notes.*  
+- Upload a MIDI (.mid) file to the webpage, choose your settings (hover over the texts and read the tooltips for more information), and click Convert MIDI.
+  - Make sure to select a language that matches the text language of your Overwatch. If you don't, the generated script can't be pasted into the game.
+  - If you get a warning about a type 0 file, keep in mind that percussion may still exist in the converted data, causing the bots to play wrong notes.
 
 If all goes well, you will get some info about the conversion, and a long string containing the custom game settings of the mode. Copy the string by pressing Copy to Clipboard, then open the Overwatch custom game settings screen.![gameSettingsImage](https://i.imgur.com/OqkaGqe.png)  
 
