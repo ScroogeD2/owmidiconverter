@@ -21,8 +21,8 @@
         </div>
 
         <p>Hover over the texts for more information.<br>
-
         <a href ="https://github.com/ScroogeD2/owmidiconverter#how-to-use">Click here for instructions</a></p>
+
         <div class="options">
             <div class="tooltipWrapper">
                 <div class="tooltip">Start At:
@@ -67,7 +67,7 @@
                         Choose the same language as your game's text language, otherwise the script can't be imported.</span>
                 </div>
             </div>
-            <select id="languageInput">
+            <select class="dropdownInput" id="languageInput">
                 <option selected value="en-US">English</option>
                 <option value="es-ES">Español (EU)</option>
                 <option value="es-MX">Español (AL)</option>
@@ -90,6 +90,46 @@
                 </div>
             </div>
             <input class="checkboxInput" type="checkbox" id="includeFullSettingsCheckBox" checked>
+
+        </div>
+
+        <button id="collapseButton" onclick="collapseElementAfter(this)">Ingame options  +</button>
+        <div class="collapsible">
+
+            <div class="options">
+                <div class="tooltipWrapper">
+                    <div class="tooltip">Make bots invisible
+                        <span class="tooltipText">Make the bots playing the song invisible. Their primary fire remains visible.</span>
+                    </div>
+                </div>
+                <input class="checkboxInput" type="checkbox" id="botVisibilityCheckbox" checked>
+
+                <div class="tooltipWrapper">
+                    <div class="tooltip">Restrict player slots
+                        <span class="tooltipText">Restrict the amount of available player slots based on the amount of bots required for the song.
+                            Enabling this ensures that bots will never despawn mid-song due to joining players.</span>
+                    </div>
+                </div>
+                <input class="checkboxInput" type="checkbox" id="restrictSlotsCheckbox">
+
+                <div class="tooltipWrapper">
+                    <div class="tooltip">Choose piano:
+                        <span class="tooltipText">Select the piano in Paris that the bots will play.</span>
+                    </div>
+                </div>
+                <select class="dropdownInput" id="pianoSelectInput">
+                    <option value="1">Point A</option>
+                    <option selected value="2">Point B</option>
+                </select>
+
+                <div class="tooltipWrapper">
+                    <div class="tooltip">Restrict players' abilities
+                        <span class="tooltipText">Disable all ultimates and abilities, as well as primary and secondary fires.</span>
+                    </div>
+                </div>
+                <input class="checkboxInput" type="checkbox" id="restrictAbilitiesCheckbox">
+
+            </div>
         </div>
 
         <button onclick="loadFile();">Convert MIDI</button>
@@ -98,12 +138,13 @@
         <textarea readonly id="scriptOutput-textarea" rows="7"></textarea>
 
         <p>Copy these settings and paste them to the <a href="https://i.imgur.com/OqkaGqe.png">Custom Game Settings screen.</a></p>
+        
+        <button id="copyRuleButton" onclick="copyText('ruleOutput-textarea')">Copy to clipboard</button>
 
         <!-- todo: fix textarea lag issues with Chrome -->
         <textarea readonly id="ruleOutput-textarea" rows="5" wrap="off" 
                   autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
         <p></p>
-        <button id="copyRuleButton" onclick="copyText('ruleOutput-textarea')">Copy to clipboard</button>
     </div>
 
     <!-- Import OverPy for language translations -->
@@ -145,8 +186,23 @@
         };
     
         function copyText(elementId) {
+            // Copy to clipboard
             document.getElementById(elementId).select();
             document.execCommand("copy");
+        }
+        
+        function collapseElementAfter(element1) {
+            // Toggles the visibility of the element after element1, switches "+" with "–"
+
+            let collapsibleElement = element1.nextElementSibling;
+            
+            if (collapsibleElement.style.display === "block") {
+                collapsibleElement.style.display = "none";
+                element1.innerHTML = element1.innerHTML.replace("–", "+")
+            } else {
+                collapsibleElement.style.display = "block";
+                element1.innerHTML = element1.innerHTML.replace("+", "–")
+            }
         }
 
         
@@ -247,7 +303,7 @@
 
                 customGameSettings += workshopScript;
 
-                updateElementValue("scriptOutput-textarea", convertedMidi.scriptOutput);
+                updateElementValue("scriptOutput-textarea", convertedMidi.scriptOutput + "Language: " + scriptLanguage + "\n");
                 updateElementValue("ruleOutput-textarea", customGameSettings + "\n");
             } else {
                 updateElementValue("scriptOutput-textarea", convertedMidi.scriptOutput);

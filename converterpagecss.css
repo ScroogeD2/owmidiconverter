@@ -9,25 +9,29 @@ body, textarea {
 a {
     color: lightblue;
 }
+
 .center {
     width: 45%;
     margin: 0 auto;
     text-align: center;
 }
+
 .options {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
 }
+
 .textInput, .checkboxInput {
     width: 40px;
     height: 16px;
     text-align: center;
 }
-#languageInput {
+.dropdownInput {
     width: 100px;
     height: 22px;
     text-align: center;
 }
+
 .tooltipWrapper {
     justify-self: right;
     border-bottom: 10px solid transparent;
@@ -53,6 +57,21 @@ a {
 .tooltip:hover .tooltipText {
     visibility: visible;
 }
+
+#collapseButton {
+    width: 100%;
+    margin-bottom: 10px;
+    font-size: 15px;
+    font-weight: bold;
+    color: lightblue;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+} 
+.collapsible {
+    display: none;
+}
+
 #scriptOutput-textarea {
-    margin-bottom: 40px;
+    margin-bottom: 20px;
 }
