@@ -2,7 +2,7 @@
 // if their language matches the text language of the game.
 
 // Lobby settings translations are needed until OverPy can decompile, compile and translate them
-const lobbySettings = {
+const baseLobbySettings = {
 	"en-US": `settings
 {
 	main
@@ -43,11 +43,6 @@ const lobbySettings = {
 			Damage Received: 500%
 			No Ammunition Requirement: On
 			Ultimate Generation: 250%
-
-			Mei
-			{
-				Ice Wall: Off
-			}
 		}
 	}
 }`,
@@ -91,11 +86,6 @@ const lobbySettings = {
 			Ultimeteraufladung: 250%
 			Unbegrenzte Munition: Ein
 			Verursachter Schaden: 500%
-
-			Mei
-			{
-				Eiswall: Aus
-			}
 		}
 	}
 }`,
@@ -139,11 +129,6 @@ const lobbySettings = {
 			Daño recibido: 500%
 			Munición infinita: Activado
 			Tiempo de reutilización de la habilidad: 0%
-
-			Mei
-			{
-				Muro de hielo: Desactivado
-			}
 		}
 	}
 }`,
@@ -187,11 +172,6 @@ const lobbySettings = {
 			Generación de la habilidad máxima: 250%
 			Sin requisitos de munición: Activado
 			Tiempo de reutilización de habilidad: 0%
-
-			Mei
-			{
-				Muro de hielo: No
-			}
 		}
 	}
 }`,
@@ -235,11 +215,6 @@ const lobbySettings = {
 			Génération de capacité ultime: 250%
 			Munitions illimitées: Activé
 			Temps de recharge de la capacité: 0%
-
-			Mei
-			{
-				Mur de glace: Désactivé
-			}
 		}
 	}
 }`,
@@ -283,11 +258,6 @@ const lobbySettings = {
 			Generazione Ultra: 250%
 			Munizioni illimitate: On
 			Tempo di recupero delle abilità: 0%
-
-			Mei
-			{
-				Muro di Ghiaccio: Off
-			}
 		}
 	}
 }`,
@@ -331,11 +301,6 @@ const lobbySettings = {
 			与ダメージ: 500%
 			弾数制限なし: ON
 			被ダメージ: 500%
-
-			メイ
-			{
-				アイス・ウォール: OFF
-			}
 		}
 	}
 }`,
@@ -379,11 +344,6 @@ const lobbySettings = {
 			받는 피해: 500%
 			주는 피해: 500%
 			탄창 제한 없음: 활성화
-
-			메이
-			{
-				빙벽: 비활성화
-			}
 		}
 	}
 }`,
@@ -427,11 +387,6 @@ const lobbySettings = {
 			Ładowanie Superzdolności: 250%
 			Otrzymane obrażenia: 500%
 			Zadane obrażenia: 500%
-
-			Mei
-			{
-				Ściana Lodu: Wył.
-			}
 		}
 	}
 }`,
@@ -475,11 +430,6 @@ const lobbySettings = {
 			Geração de Supremo: 250%
 			Sem requerimentos de munição: Ligado
 			Tempo de recarga da habilidade: 0%
-
-			Mei
-			{
-				Muralha de Gelo: Desligado
-			}
 		}
 	}
 }`,
@@ -523,11 +473,6 @@ const lobbySettings = {
 			Зарядка суперспособностей: 250%
 			Наносимый урон: 500%
 			Получаемый урон: 500%
-
-			Мэй
-			{
-				Ледяная стена: Откл.
-			}
 		}
 	}
 }`,
@@ -571,11 +516,6 @@ const lobbySettings = {
 			技能冷却时间: 0%
 			无需装弹: 开启
 			终极技能充能速度: 250%
-
-			美
-			{
-				冰墙: 关闭
-			}
 		}
 	}
 }`,
@@ -619,11 +559,6 @@ const lobbySettings = {
 			無限彈藥: 開啟
 			絕招蓄力速度: 250%
 			造成的傷害: 500%
-
-			小美
-			{
-				冰牆: 關閉
-			}
 		}
 	}
 }`
