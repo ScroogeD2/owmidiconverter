@@ -102,8 +102,9 @@
                         <span class="tooltipText">Make the bots playing the song invisible. Their primary fire remains visible.</span>
                     </div>
                 </div>
-                <input class="checkboxInput" type="checkbox" id="botVisibilityCheckbox" checked>
+                <input class="checkboxInput" type="checkbox" id="botsInvisibleCheckbox" checked>
 
+                <!--
                 <div class="tooltipWrapper">
                     <div class="tooltip">Restrict player slots
                         <span class="tooltipText">Restrict the amount of available player slots based on the amount of bots required for the song.
@@ -118,9 +119,10 @@
                     </div>
                 </div>
                 <select class="dropdownInput" id="pianoSelectInput">
-                    <option value="1">Point A</option>
-                    <option selected value="2">Point B</option>
+                    <option value=1>Point A</option>
+                    <option selected value=2>Point B</option>
                 </select>
+                -->
 
                 <div class="tooltipWrapper">
                     <div class="tooltip">Restrict players' abilities
@@ -137,7 +139,7 @@
         <p>Script info:</p>
         <textarea readonly id="scriptOutput-textarea" rows="7"></textarea>
 
-        <p>Copy these settings and paste them to the <a href="https://i.imgur.com/OqkaGqe.png">Custom Game Settings screen.</a></p>
+        <p>Copy these settings and paste them to the <a href="https://i.imgur.com/OqkaGqe.png">Custom Game Settings screen:</a></p>
         
         <button id="copyRuleButton" onclick="copyText('ruleOutput-textarea')">Copy to clipboard</button>
 
@@ -176,7 +178,6 @@
     <script type="text/javascript" src="src/gamemodeSettings/workshopScript_en-US.js"></script>
 
     <script>
-
         "use strict";
 
         const ERRORS = {
@@ -184,29 +185,85 @@
             TRANSLATION_ERROR: "Error: the generated workshop script could not be translated.\n",
             FILE_FORMAT_ERROR: "Error: the uploaded file could not be read as a MIDI file.\n"
         };
-    
-        function copyText(elementId) {
-            // Copy to clipboard
-            document.getElementById(elementId).select();
-            document.execCommand("copy");
+
+        const SCRIPTS = {
+            restrictAbilities: "Set Ability 1 Enabled(Event Player, False);Set Ability 2 Enabled(Event Player, False);Set Ultimate Ability Enabled(Event Player, False);Set Primary Fire Enabled(Event Player, False);Set Secondary Fire Enabled(Event Player, False);If(Compare(Hero Of(Event Player), ==, Hero(Wrecking Ball)));Disallow Button(Event Player, Crouch);End;",
+            botsInvisible: "Set Invisible(Event Player, All);",
+            restrictSlots: "TODO"
+        }
+
+
+        function loadFile() {
+            let file = document.getElementById("file-input").files[0];
+            if (!file) {
+                return;
+            }
+
+            updateElementValue("scriptOutput-textarea", "");
+            updateElementValue("ruleOutput-textarea", "");
+
+            const reader = new FileReader();
+
+            reader.onload = function (event) {
+                try {
+                    let mid = new Midi(event.target.result);
+                    parseMidi(mid);
+                }
+                catch (error) {
+                    updateElementValue("scriptOutput-textarea", ERRORS["FILE_FORMAT_ERROR"]);
+                    console.error(error);
+                }
+            }
+            reader.readAsArrayBuffer(file);
         }
         
-        function collapseElementAfter(element1) {
-            // Toggles the visibility of the element after element1, switches "+" with "–"
 
-            let collapsibleElement = element1.nextElementSibling;
+        function parseMidi(mid) {
+            const converterSettings = getConverterSettings();
+            let convertedMidi = {};
             
-            if (collapsibleElement.style.display === "block") {
-                collapsibleElement.style.display = "none";
-                element1.innerHTML = element1.innerHTML.replace("–", "+")
+            try {
+                convertedMidi = convertMidi(mid, converterSettings);
+            }
+            catch (error) {
+                updateElementValue("scriptOutput-textarea", ERRORS["MIDI_CONVERTER_ERROR"]);
+                console.error(error);
+            }
+
+            if (convertedMidi.rules != "") {
+                let scriptLanguage = document.getElementById("languageInput").value;
+
+                // CustomGameSettings consists of lobbySettings and workshopScript
+                let customGameSettings = "";
+                let workshopScript = "";
+
+                if (document.getElementById("includeFullSettingsCheckBox").checked) {
+                    // Add baseLobbySettings and baseWorkshopScript
+                    let script = generateIngameSettings(scriptLanguage);
+                    workshopScript += script.workshopScript;
+                    customGameSettings += script.lobbySettings;
+                } else {
+                    // Only add variables used in the converted midi script
+                    workshopScript += convertedMidiVars;
+                }
+
+                workshopScript += convertedMidi.rules;
+
+                if (scriptLanguage != "en-US") {
+                    workshopScript = translateWorkshopScript(workshopScript, scriptLanguage);
+                }
+
+                customGameSettings += workshopScript;
+
+                updateElementValue("scriptOutput-textarea", convertedMidi.scriptOutput + "Language: " + scriptLanguage + "\n");
+                updateElementValue("ruleOutput-textarea", customGameSettings + "\n");
             } else {
-                collapsibleElement.style.display = "block";
-                element1.innerHTML = element1.innerHTML.replace("+", "–")
+                updateElementValue("scriptOutput-textarea", convertedMidi.scriptOutput);
             }
         }
 
         
-        function getSettings() {
+        function getConverterSettings() {
             // Reads the values in the webpage input fields, 
             // ensures that they're in the correct numerical ranges
 
@@ -234,22 +291,44 @@
 
             return userSettings;
         }
+        
 
+        function generateIngameSettings(scriptLanguage) {
+            // Modifies baseWorkshopScript and baseLobbySettings 
+            // based on the user's selected settings, and returns them
 
-        function updateElementValue(elementId, newValue, keepOldText = false) {
-            // Updates text in a webpage element.
+            const userSettings = {
+                botsInvisible: document.getElementById("botsInvisibleCheckbox").checked,
+                // restrictSlots: document.getElementById("restrictSlotsCheckbox").checked,
+                // pianoSelect: document.getElementById("pianoSelectInput").value,
+                restrictAbilities: document.getElementById("restrictAbilitiesCheckbox").checked
+            };
 
-            let outputText = "";
-            let oldValue = document.getElementById(elementId).value;
+            let workshopScript = baseWorkshopScript;
+            let lobbySettings = baseLobbySettings[scriptLanguage];
 
-            if (keepOldText) {
-                outputText = oldValue + newValue;
-            } else {
-                outputText = newValue;
+            if (!userSettings.botsInvisible) {
+                workshopScript = workshopScript.replace(SCRIPTS["botsInvisible"], "");
             }
-            document.getElementById(elementId).value = outputText;
-        }
 
+            /*
+            if (!userSettings.restrictSlots) {
+                todo
+            }
+            
+            piano select: todo
+            */
+
+            if (!userSettings.restrictAbilities) {
+                workshopScript = workshopScript.replace(SCRIPTS["restrictAbilities"], "");
+            }
+
+            return { 
+                workshopScript: workshopScript, 
+                lobbySettings: lobbySettings 
+            };
+            
+        }
 
         function translateWorkshopScript(script, language) {
             // Translates by decompiling to OverPy script, 
@@ -267,72 +346,39 @@
             }
         }
 
-
-        function parseMidi(mid) {
-            const converterSettings = getSettings();
-            let convertedMidi = {};
             
-            try {
-                convertedMidi = convertMidi(mid, converterSettings);
-            }
-            catch (error) {
-                updateElementValue("scriptOutput-textarea", ERRORS["MIDI_CONVERTER_ERROR"]);
-                console.error(error);
-            }
+        function copyText(elementId) {
+            // Copy to clipboard
+            document.getElementById(elementId).select();
+            document.execCommand("copy");
+        }
+        
+        function collapseElementAfter(element1) {
+            // Toggles the visibility of the element after element1, switches "+" with "–"
 
-            if (convertedMidi.rules != "") {
-                let scriptLanguage = document.getElementById("languageInput").value;
-
-                // CustomGameSettings consists of lobbySettings and workshopScript
-                let customGameSettings = "";
-                let workshopScript = "";
-
-                if (document.getElementById("includeFullSettingsCheckBox").checked) {
-                    workshopScript += baseWorkshopScript;
-                    customGameSettings += lobbySettings[scriptLanguage];
-                } else {
-                    // Only add variables used in the workshop rules generated by the converter
-                    workshopScript += convertedMidiVars;
-                }
-
-                workshopScript += convertedMidi.rules;
-
-                if (scriptLanguage != "en-US") {
-                    workshopScript = translateWorkshopScript(workshopScript, scriptLanguage);
-                }
-
-                customGameSettings += workshopScript;
-
-                updateElementValue("scriptOutput-textarea", convertedMidi.scriptOutput + "Language: " + scriptLanguage + "\n");
-                updateElementValue("ruleOutput-textarea", customGameSettings + "\n");
+            let collapsibleElement = element1.nextElementSibling;
+            
+            if (collapsibleElement.style.display === "block") {
+                collapsibleElement.style.display = "none";
+                element1.innerHTML = element1.innerHTML.replace("–", "+")
             } else {
-                updateElementValue("scriptOutput-textarea", convertedMidi.scriptOutput);
+                collapsibleElement.style.display = "block";
+                element1.innerHTML = element1.innerHTML.replace("+", "–")
             }
         }
 
+        function updateElementValue(elementId, newValue, keepOldText = false) {
+            // Updates text in a webpage element.
 
-        function loadFile() {
-            let file = document.getElementById("file-input").files[0];
-            if (!file) {
-                return;
+            let outputText = "";
+            let oldValue = document.getElementById(elementId).value;
+
+            if (keepOldText) {
+                outputText = oldValue + newValue;
+            } else {
+                outputText = newValue;
             }
-
-            updateElementValue("scriptOutput-textarea", "");
-            updateElementValue("ruleOutput-textarea", "");
-
-            const reader = new FileReader();
-
-            reader.onload = function (event) {
-                try {
-                    let mid = new Midi(event.target.result);
-                    parseMidi(mid);
-                }
-                catch (error) {
-                    updateElementValue("scriptOutput-textarea", ERRORS["FILE_FORMAT_ERROR"]);
-                    console.error(error);
-                }
-            }
-            reader.readAsArrayBuffer(file);
+            document.getElementById(elementId).value = outputText;
         }
     </script>
 </body>
