@@ -33,20 +33,36 @@ const WARNINGS = {
 };
 
 
-function transposePitch(pitch) {
-    while (pitch < PIANO_RANGE["MIN"]) {
-        pitch += OCTAVE;
-    }
-    while (pitch > PIANO_RANGE["MAX"]) {
-        pitch -= OCTAVE;
-    }
-    return pitch;
-}
+function convertMidi(mid, settings={}) {
+    /*
+    param mid:  a Midi object created by Tonejs/Midi
+    param settings: a JS object containing user parameters for 
+                    parsing the midi data, see DEFAULT_SETTINGS for an example
 
+    Return: a JS object { rules, scriptOutput }, containing:
+        string rules:    Overwatch workshop rules containing the song Data,
+                         or an empty string if an error occurred
+        string scriptOutput:    information output by the script, 
+                                including error messages
+    */
 
-function roundToPlaces(value, decimalPlaces) {
-    // Todo: validate decimalPlaces?
-    return Math.round(value * Math.pow(10, decimalPlaces)) / Math.pow(10, decimalPlaces);
+    if (Object.keys(settings).length != Object.keys(CONVERTER_SETTINGS_INFO).length) {
+        settings = DEFAULT_SETTINGS;
+    }
+
+    let chordInfo = readMidiData(mid, settings);
+    let rules = "";
+    let scriptOutput = chordInfo.output;
+
+    if (chordInfo.chords.size != 0) {
+        let arrayInfo = convertToArray(chordInfo.chords, settings, 
+                                       chordInfo.output, chordInfo.maxPitches);
+
+        scriptOutput = arrayInfo.output;
+        rules = writeWorkshopRules(arrayInfo.owArrays);
+    }
+    
+    return { rules, scriptOutput };
 }
 
 
@@ -201,34 +217,18 @@ function writeWorkshopRules(owArrays) {
     return rules.join("");
 }
 
-function convertMidi(mid, settings={}) {
-    /*
-    param mid:  a Midi object created by Tonejs/Midi
-    param settings: a JS object containing user parameters for 
-                    parsing the midi data, see DEFAULT_SETTINGS for an example
 
-    Return: a JS object { rules, scriptOutput }, containing:
-        string rules:    Overwatch workshop rules containing the song Data,
-                         or an empty string if an error occurred
-        string scriptOutput:    information output by the script, 
-                                including error messages
-    */
-
-    if (Object.keys(settings).length != Object.keys(CONVERTER_SETTINGS_INFO).length) {
-        settings = DEFAULT_SETTINGS;
+function transposePitch(pitch) {
+    while (pitch < PIANO_RANGE["MIN"]) {
+        pitch += OCTAVE;
     }
-
-    let chordInfo = readMidiData(mid, settings);
-    let rules = "";
-    let scriptOutput = chordInfo.output;
-
-    if (chordInfo.chords.size != 0) {
-        let arrayInfo = convertToArray(chordInfo.chords, settings, 
-                                       chordInfo.output, chordInfo.maxPitches);
-
-        scriptOutput = arrayInfo.output;
-        rules = writeWorkshopRules(arrayInfo.owArrays);
+    while (pitch > PIANO_RANGE["MAX"]) {
+        pitch -= OCTAVE;
     }
-    
-    return { rules, scriptOutput };
+    return pitch;
+}
+
+function roundToPlaces(value, decimalPlaces) {
+    // Todo: validate decimalPlaces?
+    return Math.round(value * Math.pow(10, decimalPlaces)) / Math.pow(10, decimalPlaces);
 }
