@@ -91,7 +91,7 @@ rule("Player init")
 
 	actions
 	{
-        Set Ability 1 Enabled(Event Player, False);Set Ability 2 Enabled(Event Player, False);Set Ultimate Ability Enabled(Event Player, False);Set Primary Fire Enabled(Event Player, False);Set Secondary Fire Enabled(Event Player, False);If(Compare(Hero Of(Event Player), ==, Hero(Wrecking Ball)));Disallow Button(Event Player, Crouch);End;
+        Disallow Button(Event Player, Melee);Set Ability 1 Enabled(Event Player, False);Set Ability 2 Enabled(Event Player, False);Set Ultimate Ability Enabled(Event Player, False);Set Primary Fire Enabled(Event Player, False);Set Secondary Fire Enabled(Event Player, False);If(Compare(Hero Of(Event Player), ==, Hero(Wrecking Ball)));Disallow Button(Event Player, Crouch);End;
 		Set Status(Event Player, Null, Phased Out, 9999);
 		Wait(1, Ignore Condition);
 		Teleport(Event Player, Global Variable(playerSpawn));
