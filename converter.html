@@ -104,7 +104,6 @@
                 </div>
                 <input class="checkboxInput" type="checkbox" id="botsInvisibleCheckbox" checked>
 
-                <!--
                 <div class="tooltipWrapper">
                     <div class="tooltip">Restrict player slots
                         <span class="tooltipText">Restrict the amount of available player slots based on the amount of bots required for the song.
@@ -119,10 +118,9 @@
                     </div>
                 </div>
                 <select class="dropdownInput" id="pianoSelectInput">
-                    <option value=1>Point A</option>
-                    <option selected value=2>Point B</option>
+                    <option value="pointA">Point A</option>
+                    <option selected value="pointB">Point B</option>
                 </select>
-                -->
 
                 <div class="tooltipWrapper">
                     <div class="tooltip">Restrict players' abilities
@@ -185,12 +183,6 @@
             TRANSLATION_ERROR: "Error: the generated workshop script could not be translated.\n",
             FILE_FORMAT_ERROR: "Error: the uploaded file could not be read as a MIDI file.\n"
         };
-
-        const SCRIPTS = {
-            restrictAbilities: "Set Ability 1 Enabled(Event Player, False);Set Ability 2 Enabled(Event Player, False);Set Ultimate Ability Enabled(Event Player, False);Set Primary Fire Enabled(Event Player, False);Set Secondary Fire Enabled(Event Player, False);If(Compare(Hero Of(Event Player), ==, Hero(Wrecking Ball)));Disallow Button(Event Player, Crouch);End;",
-            botsInvisible: "Set Invisible(Event Player, All);",
-            restrictSlots: "TODO"
-        }
 
 
         function loadFile() {
@@ -300,7 +292,7 @@
             const userSettings = {
                 botsInvisible: document.getElementById("botsInvisibleCheckbox").checked,
                 // restrictSlots: document.getElementById("restrictSlotsCheckbox").checked,
-                // pianoSelect: document.getElementById("pianoSelectInput").value,
+                selectedPiano: document.getElementById("pianoSelectInput").value,
                 restrictAbilities: document.getElementById("restrictAbilitiesCheckbox").checked
             };
 
@@ -315,10 +307,10 @@
             if (!userSettings.restrictSlots) {
                 todo
             }
-            
-            piano select: todo
             */
-
+            
+            workshopScript += pianoPositionScripts[userSettings.selectedPiano];
+            
             if (!userSettings.restrictAbilities) {
                 workshopScript = workshopScript.replace(SCRIPTS["restrictAbilities"], "");
             }

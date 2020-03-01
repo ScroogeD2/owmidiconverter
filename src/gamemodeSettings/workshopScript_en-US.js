@@ -57,8 +57,6 @@ rule("Global init")
 		Set Global Variable(tempArray, Empty Array);
 		Set Global Variable(minChordTime, 0.064);
 		Set Global Variable(chordArrayIndex, 1);
-		Set Global Variable(pianoPosition, Vector(-84.693, 13.873, -107.681));
-		Set Global Variable(playerSpawn, Vector(-85.624, 14.349, -104.397));
 		Set Global Variable(bots, Empty Array);
 		Set Global Variable(speedPercent, 100);
 		Set Global Variable(defaultFacingDirection, Vector(162, 60, 0));
@@ -69,85 +67,9 @@ rule("Global init")
 			"Host player: Press Interact to start and stop the song, and Primary or Secondary Fire to change speed", Null, Null, Null),
 			Top, 0, White, White, White, Visible To and String, Default Visibility);
 		Create HUD Text(All Players(All Teams), Null, Custom String("By ScroogeD#5147 (Discord)", Null, Null, Null), Null, Left, 0, White,
-			Yellow, White, Visible To and String, Default Visibility);
-	}
-}
-
-rule("Note positions array init")
-{
-	event
-	{
-		Ongoing - Global;
-	}
-
-	actions
-	{
-		Set Global Variable(notePositions, Empty Array);
-		Modify Global Variable(notePositions, Append To Array, Vector(0, -116.543, 59.952));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, -121.295, 60.051));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, -115.790, 61.716));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, -120.998, 61.183));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, -116.878, 62.765));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, -117.911, 63.995));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, -122.525, 64.050));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, -118.207, 65.341));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, -122.822, 65.457));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, -120.031, 66.605));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, -124.860, 66.649));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, -119.196, 67.972));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, -120.685, 69.576));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, -126.365, 69.697));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, -121.575, 71.104));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, -128.227, 70.983));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, -122.997, 72.427));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, -123.453, 73.932));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, -131.473, 73.872));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, -126.107, 75.558));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, -135.549, 75.157));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, -127.969, 77.141));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, -138.702, 76.805));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, -131.375, 78.624));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, -132.720, 80.250));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, -148.760, 79.118));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, -141.235, 81.398));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, -153.270, 80.645));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, -146.063, 82.963));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, -156.440, 84.012));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, -173.309, 82.469));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, -171.172, 85.419));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, 175.303, 82.820));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, 172.277, 85.891));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, 161.444, 83.177));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, 150.139, 85.457));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, 133.011, 84.309));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, 133.171, 82.408));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, 119.388, 83.771));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, 123.272, 81.315));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, 107.710, 82.386));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, 105.095, 80.563));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, 108.935, 79.118));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, 96.301, 79.557));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, 104.601, 77.498));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, 93.334, 78.168));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, 99.926, 76.267));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, 91.154, 76.882));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, 91.390, 74.943));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, 96.026, 73.301));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, 86.204, 73.812));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, 93.054, 72.010));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, 84.128, 72.191));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, 85.095, 70.527));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, 91.533, 69.060));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, 82.996, 69.181));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, 87.808, 67.813));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, 82.106, 67.736));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, 87.275, 66.231));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, 81.513, 66.132));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, 80.958, 64.984));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, 85.413, 63.776));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, 80.184, 63.594));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, 84.979, 62.628));
-		Modify Global Variable(notePositions, Append To Array, Vector(0, 79.689, 62.249));
+            Yellow, White, Visible To and String, Default Visibility);
+        Create HUD Text(All Players(All Teams), Null, Custom String("Website: github.com/ScroogeD2/owmidiconverter", Null, Null, Null),
+		    Null, Left, 1, White, Yellow, White, Visible To and String, Default Visibility);
 	}
 }
 
@@ -457,3 +379,173 @@ const convertedMidiVars = `variables
         19: songData
         20: tempArray
 }`;
+
+
+// Coordinates of player and bot spawns, as well as directions for all 64 keys on the two pianos in Paris
+const pianoPositionScripts = {
+    pointA: `rule("Note positions array init")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+    {
+        Set Global Variable(notePositions, Empty Array);
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -12.920, 65.539));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -17.056, 65.517));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -12.936, 66.687));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -17.490, 66.747));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -13.354, 67.813));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -14.617, 68.862));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -19.649, 68.983));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -15.787, 70.170));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -21.330, 70.010));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -15.809, 71.499));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -22.165, 71.158));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -16.578, 72.565));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -17.869, 73.795));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -25.313, 73.773));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -18.699, 75.020));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -28.213, 74.724));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -19.611, 76.366));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -22.104, 77.536));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -32.596, 77.162));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -24.500, 78.882));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -35.294, 78.387));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -26.977, 80.288));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -40.814, 79.200));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -31.174, 81.420));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -37.271, 82.370));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -52.180, 81.299));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -43.726, 83.518));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -59.645, 82.090));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -54.970, 84.210));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -67.209, 85.199));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -79.722, 83.276));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -82.892, 85.594));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -91.604, 83.337));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -100.355, 85.776));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -103.480, 83.276));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -117.460, 85.298));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -130.012, 84.309));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -125.557, 82.425));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -140.411, 83.677));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -132.709, 81.398));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -147.283, 82.507));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -152.073, 81.222));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -143.163, 79.299));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -156.528, 80.129));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -149.260, 78.585));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -158.566, 78.821));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -151.633, 77.162));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -161.120, 77.536));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -162.883, 76.547));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -156.885, 74.883));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -165.652, 75.201));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -159.357, 73.856));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -167.141, 73.932));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -167.454, 72.746));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -162.070, 71.378));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -169.277, 71.636));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -163.636, 70.170));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -169.338, 70.291));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -164.800, 68.961));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -170.761, 69.060));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -171.277, 67.912));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -166.943, 66.703));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -171.870, 66.627));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -167.712, 65.599));
+        Modify Global Variable(notePositions, Append To Array, Vector(0, -172.386, 65.654));
+        Set Global Variable(pianoPosition, Vector(-41.016, 13.158, 33.314));
+        Set Global Variable(playerSpawn, Vector(-34.5, 12, 32.3));
+    }
+}`,
+    pointB: `rule("Note positions array init")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Set Global Variable(notePositions, Empty Array);
+		Modify Global Variable(notePositions, Append To Array, Vector(0, -116.543, 59.952));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, -121.295, 60.051));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, -115.790, 61.716));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, -120.998, 61.183));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, -116.878, 62.765));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, -117.911, 63.995));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, -122.525, 64.050));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, -118.207, 65.341));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, -122.822, 65.457));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, -120.031, 66.605));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, -124.860, 66.649));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, -119.196, 67.972));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, -120.685, 69.576));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, -126.365, 69.697));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, -121.575, 71.104));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, -128.227, 70.983));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, -122.997, 72.427));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, -123.453, 73.932));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, -131.473, 73.872));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, -126.107, 75.558));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, -135.549, 75.157));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, -127.969, 77.141));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, -138.702, 76.805));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, -131.375, 78.624));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, -132.720, 80.250));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, -148.760, 79.118));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, -141.235, 81.398));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, -153.270, 80.645));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, -146.063, 82.963));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, -156.440, 84.012));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, -173.309, 82.469));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, -171.172, 85.419));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, 175.303, 82.820));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, 172.277, 85.891));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, 161.444, 83.177));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, 150.139, 85.457));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, 133.011, 84.309));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, 133.171, 82.408));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, 119.388, 83.771));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, 123.272, 81.315));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, 107.710, 82.386));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, 105.095, 80.563));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, 108.935, 79.118));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, 96.301, 79.557));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, 104.601, 77.498));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, 93.334, 78.168));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, 99.926, 76.267));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, 91.154, 76.882));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, 91.390, 74.943));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, 96.026, 73.301));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, 86.204, 73.812));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, 93.054, 72.010));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, 84.128, 72.191));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, 85.095, 70.527));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, 91.533, 69.060));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, 82.996, 69.181));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, 87.808, 67.813));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, 82.106, 67.736));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, 87.275, 66.231));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, 81.513, 66.132));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, 80.958, 64.984));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, 85.413, 63.776));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, 80.184, 63.594));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, 84.979, 62.628));
+		Modify Global Variable(notePositions, Append To Array, Vector(0, 79.689, 62.249));
+		Set Global Variable(pianoPosition, Vector(-84.693, 13.873, -107.681));
+		Set Global Variable(playerSpawn, Vector(-85.624, 14.349, -104.397));
+	}
+}`
+}
+
+// Various scripts corresponding to the options in the converter webpage
+const SCRIPTS = {
+    restrictAbilities: "Set Ability 1 Enabled(Event Player, False);Set Ability 2 Enabled(Event Player, False);Set Ultimate Ability Enabled(Event Player, False);Set Primary Fire Enabled(Event Player, False);Set Secondary Fire Enabled(Event Player, False);If(Compare(Hero Of(Event Player), ==, Hero(Wrecking Ball)));Disallow Button(Event Player, Crouch);End;",
+    botsInvisible: "Set Invisible(Event Player, All);",
+    // restrictSlots: "TODO"
+}
