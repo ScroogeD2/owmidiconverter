@@ -230,13 +230,13 @@
                 let workshopScript = "";
 
                 if (document.getElementById("includeFullSettingsCheckBox").checked) {
-                    // Add baseLobbySettings and baseWorkshopScript
+                    // Add BASE_LOBBY_SETTINGS and BASE_WORKSHOP_SCRIPT
                     let script = generateIngameSettings(scriptLanguage);
                     workshopScript += script.workshopScript;
                     customGameSettings += script.lobbySettings;
                 } else {
                     // Only add variables used in the converted midi script
-                    workshopScript += convertedMidiVars;
+                    workshopScript += CONVERTED_MIDI_VARS;
                 }
 
                 workshopScript += convertedMidi.rules;
@@ -286,7 +286,7 @@
         
 
         function generateIngameSettings(scriptLanguage) {
-            // Modifies baseWorkshopScript and baseLobbySettings 
+            // Modifies BASE_WORKSHOP_SCRIPT and BASE_LOBBY_SETTINGS 
             // based on the user's selected settings, and returns them
 
             const userSettings = {
@@ -296,8 +296,8 @@
                 restrictAbilities: document.getElementById("restrictAbilitiesCheckbox").checked
             };
 
-            let workshopScript = baseWorkshopScript;
-            let lobbySettings = baseLobbySettings[scriptLanguage];
+            let workshopScript = BASE_WORKSHOP_SCRIPT;
+            let lobbySettings = BASE_LOBBY_SETTINGS[scriptLanguage];
 
             if (!userSettings.botsInvisible) {
                 workshopScript = workshopScript.replace(SCRIPTS["botsInvisible"], "");
@@ -309,7 +309,7 @@
             }
             */
             
-            workshopScript += pianoPositionScripts[userSettings.selectedPiano];
+            workshopScript += PIANO_POSITION_SCRIPTS[userSettings.selectedPiano];
             
             if (!userSettings.restrictAbilities) {
                 workshopScript = workshopScript.replace(SCRIPTS["restrictAbilities"], "");

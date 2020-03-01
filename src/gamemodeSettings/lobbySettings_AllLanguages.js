@@ -2,7 +2,7 @@
 // if their language matches the text language of the game.
 
 // Lobby settings translations are needed until OverPy can decompile, compile and translate them
-const baseLobbySettings = {
+const BASE_LOBBY_SETTINGS = {
 	"en-US": `settings
 {
 	main

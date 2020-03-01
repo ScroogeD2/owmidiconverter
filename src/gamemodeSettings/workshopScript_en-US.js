@@ -2,7 +2,7 @@
 // if their language matches the text language of the game.
 
 // Only the English workshop script is needed, as OverPy can translate it to all other languages.
-const baseWorkshopScript = `
+const BASE_WORKSHOP_SCRIPT = `
 variables
 {
 	global:
@@ -373,7 +373,7 @@ rule("Destroy bots (workaround for Destroy All Dummy Bots bug)")
 }`;
 
 // Used in case the user chooses to not generate the full gamemode settings.
-const convertedMidiVars = `variables
+const CONVERTED_MIDI_VARS = `variables
 {
     global:
         19: songData
@@ -382,7 +382,7 @@ const convertedMidiVars = `variables
 
 
 // Coordinates of player and bot spawns, as well as directions for all 64 keys on the two pianos in Paris
-const pianoPositionScripts = {
+const PIANO_POSITION_SCRIPTS = {
     pointA: `rule("Note positions array init")
 {
 	event
