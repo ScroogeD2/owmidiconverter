@@ -33,7 +33,7 @@ const CONVERTER_WARNINGS = {
 };
 
 const CONVERTER_ERRORS = {
-    NO_NOTES_FOUND: `Error: no notes found in MIDI file in the given range.\n`
+    NO_NOTES_FOUND: `Error: no notes found in MIDI file in the given time range.\n`
 };
 
 
@@ -64,7 +64,7 @@ function convertMidi(mid, settings={}) {
 
     let arrayInfo = {};
     if (chordInfo.chords.size != 0) {
-        arrayInfo = convertToArray(chordInfo.chords, settings, chordInfo.maxPitches);
+        arrayInfo = convertToArray(chordInfo.chords, settings);
 
         rules = writeWorkshopRules(arrayInfo.owArrays);
     }
@@ -73,7 +73,7 @@ function convertMidi(mid, settings={}) {
         rules:              rules, 
         skippedNotes:       chordInfo.skippedNotes, 
         transposedNotes:    chordInfo.transposedNotes,
-        maxPitches:         chordInfo.maxPitches,
+        maxPitches:         arrayInfo.maxPitches,
         totalElements:      arrayInfo.totalElements,
         totalArrays:        arrayInfo.totalArrays,
         warnings:           chordInfo.warnings,
@@ -131,19 +131,12 @@ function readMidiData(mid, settings) {
         }
     }
 
-    let maxPitches = 0;
     let warnings = []
     let errors = [];
 
     if (chords.size == 0) {
         errors.push(CONVERTER_ERRORS["NO_NOTES_FOUND"]);
     } else {
-        // Sort chords.values() by length and get the length of the 0th element 
-        // to get the amount of pitches in the largest chord
-        maxPitches = Array.from(chords.values()
-                            ).sort( (a, b) => { return b.length - a.length; }
-                            )[0].length;
-            
         // Sort by keys (times)
         chords = new Map([...chords.entries()].sort( (time1, time2) => 
                                                     { return roundToPlaces(parseFloat(time1) 
@@ -159,16 +152,21 @@ function readMidiData(mid, settings) {
         chords, 
         skippedNotes, 
         transposedNotes, 
-        maxPitches, 
         warnings, 
         errors 
     };
 }
 
 
-function convertToArray(chords, settings, maxPitches) {
+function convertToArray(chords, settings) {
     // Converts the contents of the chords map 
     // to a format compatible with Overwatch
+
+    // Sort chords.values() by length and get the length of the 0th element 
+    // to get the amount of pitches in the largest chord
+    let maxPitches = Array.from(chords.values()
+                        ).sort( (a, b) => { return b.length - a.length; }
+                        )[0].length;
 
     let owArrays = [ [maxPitches] ];
 
@@ -198,7 +196,7 @@ function convertToArray(chords, settings, maxPitches) {
     let totalArrays = owArrays.length;
     let totalElements = owArrays.reduce( (a, b) => { return a + b.length; }, 0 );
     
-    return { owArrays, totalElements, totalArrays };
+    return { owArrays, totalElements, totalArrays, maxPitches };
 }
 
 
