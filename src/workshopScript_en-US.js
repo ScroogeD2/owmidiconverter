@@ -11,6 +11,7 @@ const BASE_WORKSHOP_SCRIPT = `settings
     
     lobby
     {
+        Allow Players Who Are In Queue: Yes
         Map Rotation: Paused
         Match Voice Chat: Enabled
         Max FFA Players: 12

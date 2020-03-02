@@ -140,7 +140,7 @@ function readMidiData(mid, settings) {
         }
     }
 
-    let warnings = []
+    let warnings = [];
     let errors = [];
 
     if (chords.size == 0) {
