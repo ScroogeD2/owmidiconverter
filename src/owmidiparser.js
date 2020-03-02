@@ -28,8 +28,12 @@ const DEFAULT_SETTINGS = {
     maxElements:	CONVERTER_SETTINGS_INFO["maxElements"]["DEFAULT"]
 };
 
-const WARNINGS = {
+const CONVERTER_WARNINGS = {
     TYPE_0_FILE: "WARNING: The processed file is a type 0 file and may have been converted incorrectly.\n"
+};
+
+const CONVERTER_ERRORS = {
+    NO_NOTES_FOUND: `Error: no notes found in MIDI file in the given range.\n`
 };
 
 
@@ -39,11 +43,16 @@ function convertMidi(mid, settings={}) {
     param settings: a JS object containing user parameters for 
                     parsing the midi data, see DEFAULT_SETTINGS for an example
 
-    Return: a JS object { rules, scriptOutput }, containing:
-        string rules:    Overwatch workshop rules containing the song Data,
-                         or an empty string if an error occurred
-        string scriptOutput:    information output by the script, 
-                                including error messages
+    Return: a JS object, containing:
+        string rules:           Overwatch workshop rules containing the song Data,
+                                or an empty string if an error occurred
+        int transposedNotes:    Amount of notes transposed to the range of the Overwatch piano
+        int skippedNotes:       Amount of notes skipped due to too many pitches in a chord
+        int maxPitches:         Amount of pitches in the largest chord
+        int totalElements:      Total amount of elements in the song data arrays of the workshop script
+        int totalArrays:        Total amount of song data arrays in the workshop script 
+        array warnings:         An array of strings containing warnings by the script
+        array errors:           An array of strings containing errors by the script
     */
 
     if (Object.keys(settings).length != Object.keys(CONVERTER_SETTINGS_INFO).length) {
@@ -52,17 +61,24 @@ function convertMidi(mid, settings={}) {
 
     let chordInfo = readMidiData(mid, settings);
     let rules = "";
-    let scriptOutput = chordInfo.output;
 
+    let arrayInfo = {};
     if (chordInfo.chords.size != 0) {
-        let arrayInfo = convertToArray(chordInfo.chords, settings, 
-                                       chordInfo.output, chordInfo.maxPitches);
+        arrayInfo = convertToArray(chordInfo.chords, settings, chordInfo.maxPitches);
 
-        scriptOutput = arrayInfo.output;
         rules = writeWorkshopRules(arrayInfo.owArrays);
     }
     
-    return { rules, scriptOutput };
+    return { 
+        rules:              rules, 
+        skippedNotes:       chordInfo.skippedNotes, 
+        transposedNotes:    chordInfo.transposedNotes,
+        maxPitches:         chordInfo.maxPitches,
+        totalElements:      arrayInfo.totalElements,
+        totalArrays:        arrayInfo.totalArrays,
+        warnings:           chordInfo.warnings,
+        errors:             chordInfo.errors
+    };
 }
 
 
@@ -116,23 +132,17 @@ function readMidiData(mid, settings) {
     }
 
     let maxPitches = 0;
-    let output = "";
+    let warnings = []
+    let errors = [];
 
     if (chords.size == 0) {
-        output += `Error: no notes found in MIDI file between ` +
-                  `${settings["startTime"]} seconds ` +
-                  `and ${settings["stopTime"]} seconds.\n`;
+        errors.push(CONVERTER_ERRORS["NO_NOTES_FOUND"]);
     } else {
-        output += `${skippedNotes} note(s) left out ` +
-                  `due to too many overlapping pitches\n` +
-                  `${transposedNotes} note(s) transposed\n`;
-
         // Sort chords.values() by length and get the length of the 0th element 
         // to get the amount of pitches in the largest chord
         maxPitches = Array.from(chords.values()
                             ).sort( (a, b) => { return b.length - a.length; }
                             )[0].length;
-        output += `${maxPitches} voice(s)\n\n`;
             
         // Sort by keys (times)
         chords = new Map([...chords.entries()].sort( (time1, time2) => 
@@ -142,14 +152,21 @@ function readMidiData(mid, settings) {
 
     if (mid.tracks.length == 1) {
         // Type 0 midi files have only one track
-        output += WARNINGS["TYPE_0_FILE"];
+        warnings.push(CONVERTER_WARNINGS["TYPE_0_FILE"]);
     }
 
-    return { chords, output, maxPitches };
+    return { 
+        chords, 
+        skippedNotes, 
+        transposedNotes, 
+        maxPitches, 
+        warnings, 
+        errors 
+    };
 }
 
 
-function convertToArray(chords, settings, output, maxPitches) {
+function convertToArray(chords, settings, maxPitches) {
     // Converts the contents of the chords map 
     // to a format compatible with Overwatch
 
@@ -178,14 +195,10 @@ function convertToArray(chords, settings, output, maxPitches) {
         prevTime = chordTime;
     }
 
+    let totalArrays = owArrays.length;
     let totalElements = owArrays.reduce( (a, b) => { return a + b.length; }, 0 );
-
-    output += `MIDI file successfully read from ${settings["startTime"]} second(s) ` +
-              `to ${roundToPlaces(settings["stopTime"], 3)} second(s).\n` +
-              `${owArrays.length} Overwatch array(s) created ` +
-              `with a total of ${totalElements} elements.\n`;
     
-    return { owArrays, output };
+    return { owArrays, totalElements, totalArrays };
 }
 
 
