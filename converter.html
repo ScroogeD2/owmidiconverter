@@ -107,7 +107,7 @@
                 <div class="tooltipWrapper">
                     <div class="tooltip">Restrict player slots
                         <span class="tooltipText">Restrict the amount of available player slots based on the amount of bots required for the song.
-                            Enabling this ensures that bots will never despawn mid-song due to joining players.</span>
+                            Enabling this ensures that bots will never despawn due to joining players.</span>
                     </div>
                 </div>
                 <input class="checkboxInput" type="checkbox" id="restrictSlotsCheckbox">
@@ -124,7 +124,7 @@
 
                 <div class="tooltipWrapper">
                     <div class="tooltip">Restrict players' abilities
-                        <span class="tooltipText">Disable all ultimates and abilities, as well as primary and secondary fires.</span>
+                        <span class="tooltipText">Disable all abilities, ultimates, melee attacks, as well as primary and secondary fires.</span>
                     </div>
                 </div>
                 <input class="checkboxInput" type="checkbox" id="restrictAbilitiesCheckbox">
@@ -180,7 +180,7 @@
     <script type="text/javascript" src="src/workshopScript_en-US.js"></script>
 
     <script type="text/javascript" src="https://unpkg.com/@tonejs/midi"></script>
-    
+
     <script>
         "use strict";
 
@@ -238,6 +238,11 @@
                         output += error;
                     } 
                 }
+                if (convertedMidi.warnings.length != 0) {
+                    for (let warning of convertedMidi.warnings) {
+                        scriptOutput += warning;
+                    } 
+                }
                 updateElementValue("scriptOutput-textarea", output);
 
             } else {
@@ -245,7 +250,7 @@
                 let customGameSettings = "";
 
                 if (document.getElementById("includeFullSettingsCheckBox").checked) {
-                    // Add BASE_LOBBY_SETTINGS and BASE_WORKSHOP_SCRIPT
+                    // Add BASE_WORKSHOP_SCRIPT
                     customGameSettings += generateIngameSettings(convertedMidi.maxPitches);
                 } else {
                     // Only add variables used in the converted midi script
