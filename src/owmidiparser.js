@@ -51,8 +51,8 @@ function convertMidi(mid, settings={}) {
         int maxPitches:         Amount of pitches in the largest chord
         int totalElements:      Total amount of elements in the song data arrays of the workshop script
         int totalArrays:        Total amount of song data arrays in the workshop script 
-        array warnings:         An array of strings containing warnings by the script
-        array errors:           An array of strings containing errors by the script
+        string[] warnings:      An array containing warnings output by the script
+        string[] errors:        An array containing errors output by the script
     */
 
     if (Object.keys(settings).length != Object.keys(CONVERTER_SETTINGS_INFO).length) {
