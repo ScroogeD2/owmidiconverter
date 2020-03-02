@@ -1238,7 +1238,7 @@ var valueFuncKw =
         "zh-CN": "标准化生命值"
     },
     "_hero": {
-        "guid": "00000000BA5C",
+        "guid": "00000000ACAA",
         "description": "A hero constant.",
         "args": [
             {
