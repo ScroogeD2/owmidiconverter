@@ -14,6 +14,12 @@ const PIANO_RANGE = Object.freeze({
 });
 const OCTAVE = 12;
 
+/* Settings for the converter.
+    - startTime: time (seconds) in the midi file when this script begins reading the data
+    - stopTime: time (seconds) in the midi file when this script stops reading the data
+    - maxPitches: maximum amount of pitches allowed in any chord
+    - maxElements: maximum amount of elements allowed in a single array of the resulting overwatch script
+*/
 const CONVERTER_SETTINGS_INFO = Object.freeze({
     startTime:		{MIN:0, MAX:Infinity,   DEFAULT:0},
     stopTime:		{MIN:0, MAX:Infinity,   DEFAULT:100},
@@ -27,6 +33,9 @@ const DEFAULT_SETTINGS = {
     maxPitches:		CONVERTER_SETTINGS_INFO["maxPitches"]["DEFAULT"],
     maxElements:	CONVERTER_SETTINGS_INFO["maxElements"]["DEFAULT"]
 };
+
+// Amount of decimals in the time of each note
+const NOTE_PRECISION = 3;
 
 const CONVERTER_WARNINGS = {
     TYPE_0_FILE: "WARNING: The processed file is a type 0 file and may have been converted incorrectly.\n"
@@ -114,7 +123,7 @@ function readMidiData(mid, settings) {
             }
 
             notePitch -= PIANO_RANGE["MIN"];
-            let noteTime = roundToPlaces(note.time, 3);
+            let noteTime = roundToPlaces(note.time, NOTE_PRECISION);
 
             if (chords.has(noteTime)) {
                 if (!chords.get(noteTime).includes(notePitch)) {
@@ -140,7 +149,7 @@ function readMidiData(mid, settings) {
         // Sort by keys (times)
         chords = new Map([...chords.entries()].sort( (time1, time2) => 
                                                     { return roundToPlaces(parseFloat(time1) 
-                                                      - parseFloat(time2), 3) } ));
+                                                      - parseFloat(time2), NOTE_PRECISION) } ));
     }
 
     if (mid.tracks.length == 1) {
@@ -170,8 +179,11 @@ function convertToArray(chords, settings) {
 
     let owArrays = [ [maxPitches] ];
 
-    // Time of first note
-    let prevTime = chords.keys().next().value;
+    // Add a slight time interval before the first note 
+    // to let bots read the pitch and aim accurately 
+    let firstNoteOffset = -0.3;
+    // Time of first note + offset
+    let prevTime = chords.keys().next().value + firstNoteOffset;
     let currentArray = 0;
     for (let [chordTime, pitches] of chords.entries()) {
 
@@ -183,7 +195,7 @@ function convertToArray(chords, settings) {
 
         // One chord in the song consists of 
         // A) "Vector(timeSinceLastChord, amountOfPitchesInChord, 0)"
-        owArrays[currentArray].push(`Vector(${roundToPlaces(chordTime - prevTime, 3)},` +
+        owArrays[currentArray].push(`Vector(${roundToPlaces(chordTime - prevTime, NOTE_PRECISION)},` +
                                    `${pitches.length},0)`);
         // and B) the pitches in that chord
         for (let pitch of pitches.sort()) {
