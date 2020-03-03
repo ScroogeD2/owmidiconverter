@@ -66,6 +66,7 @@ variables
         12: loopStartIndex
         13: loopArrayIndex
         14: loopCounter
+        15: banTpLocation
         19: songData
         20: tempArray
 
@@ -73,6 +74,7 @@ variables
         0: readNote
         1: playNote
         2: currentPitch
+        3: playerToRemove
         4: voiceIndex
 }
 
@@ -115,6 +117,9 @@ rule("Global init")
             Yellow, White, Visible To and String, Default Visibility);
         Create HUD Text(All Players(All Teams), Null, Custom String("Website: github.com/ScroogeD2/owmidiconverter", Null, Null, Null),
             Null, Left, 1, White, Yellow, White, Visible To and String, Default Visibility);
+        Create HUD Text(Filtered Array(All Players(All Teams), Has Status(Current Array Element, Frozen)), Custom String(
+			"The host player has decided to remove you temporarily. Please wait a minute before rejoining.", Null, Null, Null), Null, Null,
+			Top, 1, White, White, White, Visible To and String, Default Visibility);
     }
 }
 
@@ -399,6 +404,34 @@ rule("Play note")
     }
 }
 
+rule("Bans for host player")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Event Player == Host Player;
+		Is Button Held(Event Player, Reload) == True;
+	}
+
+	actions
+	{
+		Clear Status(Filtered Array(All Players(All Teams), Not(Is Dummy Bot(Current Array Element))), Phased Out);
+		Set Player Variable(Event Player, playerToRemove, Ray Cast Hit Player(Eye Position(Event Player), Add(Eye Position(Event Player),
+			Multiply(Facing Direction Of(Event Player), 20)), All Players(All Teams), Event Player, True));
+        Teleport(Player Variable(Event Player, playerToRemove), Global Variable(banTpLocation));
+		Set Status(Player Variable(Event Player, playerToRemove), Null, Frozen, 30);
+		Wait(0.016, Ignore Condition);
+		Set Status(All Players(All Teams), Null, Phased Out, 9999);
+		Set Player Variable(Event Player, playerToRemove, Null);
+	}
+}
+
 rule("Destroy bots (workaround for Destroy All Dummy Bots bug)")
 {
     event
@@ -506,6 +539,7 @@ const PIANO_POSITION_SCRIPTS = {
         Modify Global Variable(notePositions, Append To Array, Vector(0, -172.386, 65.654));
         Set Global Variable(pianoPosition, Vector(-41.016, 13.158, 33.314));
         Set Global Variable(playerSpawn, Vector(-34.5, 12, 32.3));
+        Set Global Variable(banTpLocation, Vector(-10.008, 15.802, -40.435));
     }
 }`,
     pointB: `rule("Note positions array init")
@@ -585,6 +619,7 @@ const PIANO_POSITION_SCRIPTS = {
         Modify Global Variable(notePositions, Append To Array, Vector(0, 79.689, 62.249));
         Set Global Variable(pianoPosition, Vector(-84.693, 13.873, -107.681));
         Set Global Variable(playerSpawn, Vector(-85.624, 14.349, -104.397));
+        Set Global Variable(banTpLocation, Vector(-83.340, 13.248, -58.608));
     }
 }`
 }
