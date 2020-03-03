@@ -2,7 +2,7 @@
 // if their language matches the text language of the game.
 
 // Only the English workshop script is needed, as OverPy can translate it to all other languages.
-const BASE_WORKSHOP_SCRIPT = `settings
+const BASE_SETTINGS = `settings
 {
     main
     {
@@ -426,7 +426,8 @@ const CONVERTED_MIDI_VARS = `variables
 }`;
 
 
-// Coordinates of player and bot spawns, as well as directions for all 64 keys on the two pianos in Paris
+// Coordinates of player and bot spawns, 
+// as well as directions for all 64 keys on the two pianos in Paris (point A and point B)
 const PIANO_POSITION_SCRIPTS = {
     pointA: `rule("Note positions array init")
 {
@@ -588,7 +589,7 @@ const PIANO_POSITION_SCRIPTS = {
 }`
 }
 
-// Various scripts corresponding to the options in the converter webpage
+// Various scripts corresponding to the options on the converter webpage
 const SCRIPTS = {
     restrictAbilities: "Disallow Button(Event Player, Melee);Set Ability 1 Enabled(Event Player, False);Set Ability 2 Enabled(Event Player, False);Set Ultimate Ability Enabled(Event Player, False);If(Compare(Event Player, !=, Host Player));Set Primary Fire Enabled(Event Player, False);Set Secondary Fire Enabled(Event Player, False);End;If(Compare(Hero Of(Event Player), ==, Hero(Wrecking Ball)));Disallow Button(Event Player, Crouch);End;",
     botsInvisible: "Set Invisible(Event Player, All);",

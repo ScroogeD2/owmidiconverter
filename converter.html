@@ -229,6 +229,7 @@
             catch (error) {
                 updateElementValue("scriptOutput-textarea", ERRORS["MIDI_CONVERTER_ERROR"]);
                 console.error(error);
+                return;
             }
 
             if (convertedMidi.rules == "") {
@@ -250,7 +251,7 @@
                 let customGameSettings = "";
 
                 if (document.getElementById("includeFullSettingsCheckBox").checked) {
-                    // Add BASE_WORKSHOP_SCRIPT
+                    // Add BASE_SETTINGS
                     customGameSettings += generateIngameSettings(convertedMidi.maxPitches);
                 } else {
                     // Only add variables used in the converted midi script
@@ -317,7 +318,7 @@
         
 
         function generateIngameSettings(maxBots) {
-            // Modifies BASE_WORKSHOP_SCRIPT based on the user's selected settings, 
+            // Modifies BASE_SETTINGS based on the user's selected settings, 
             // and returns the modified script.
 
             const userSettings = {
@@ -327,23 +328,24 @@
                 restrictAbilities: document.getElementById("restrictAbilitiesCheckbox").checked
             };
 
-            let workshopScript = BASE_WORKSHOP_SCRIPT;
+            let customGameSettings = BASE_SETTINGS;
 
             if (!userSettings.botsInvisible) {
-                workshopScript = workshopScript.replace(SCRIPTS["botsInvisible"], "");
+                customGameSettings = customGameSettings.replace(SCRIPTS["botsInvisible"], "");
             }
 
             if (userSettings.restrictSlots) {
-                workshopScript = workshopScript.replace(SCRIPTS["restrictSlots"], `Max FFA Players: ${MAX_PLAYERS - maxBots}`)
+                customGameSettings = customGameSettings.replace(SCRIPTS["restrictSlots"], 
+                                                                `Max FFA Players: ${MAX_PLAYERS - maxBots}`)
             }
             
-            workshopScript += PIANO_POSITION_SCRIPTS[userSettings.selectedPiano];
+            customGameSettings += PIANO_POSITION_SCRIPTS[userSettings.selectedPiano];
             
             if (!userSettings.restrictAbilities) {
-                workshopScript = workshopScript.replace(SCRIPTS["restrictAbilities"], "");
+                customGameSettings = customGameSettings.replace(SCRIPTS["restrictAbilities"], "");
             }
 
-            return workshopScript;
+            return customGameSettings;
             
         }
 
