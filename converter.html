@@ -129,6 +129,14 @@
                 </div>
                 <input class="checkboxInput" type="checkbox" id="restrictAbilitiesCheckbox">
 
+                <div class="tooltipWrapper">
+                    <div class="tooltip">Bans for host player
+                        <span class="tooltipText">Include a ban system for temporarily removing troublemakers: 
+                            When host player presses Reload (R), the player he is aiming towards will be teleported out for 30 seconds.</span>
+                    </div>
+                </div>
+                <input class="checkboxInput" type="checkbox" id="includeBanSystemCheckbox">
+
             </div>
         </div>
 
@@ -325,7 +333,8 @@
                 botsInvisible: document.getElementById("botsInvisibleCheckbox").checked,
                 restrictSlots: document.getElementById("restrictSlotsCheckbox").checked,
                 selectedPiano: document.getElementById("pianoSelectInput").value,
-                restrictAbilities: document.getElementById("restrictAbilitiesCheckbox").checked
+                restrictAbilities: document.getElementById("restrictAbilitiesCheckbox").checked,
+                includeBanSystem: document.getElementById("includeBanSystemCheckbox").checked
             };
 
             let customGameSettings = BASE_SETTINGS;
@@ -343,6 +352,10 @@
             
             if (!userSettings.restrictAbilities) {
                 customGameSettings = customGameSettings.replace(SCRIPTS["restrictAbilities"], "");
+            }
+
+            if (!userSettings.includeBanSystem) {
+                customGameSettings = customGameSettings.replace(SCRIPTS["includeBanSystem"], "");
             }
 
             return customGameSettings;

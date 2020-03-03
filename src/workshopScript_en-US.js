@@ -404,33 +404,7 @@ rule("Play note")
     }
 }
 
-rule("Bans for host player")
-{
-	event
-	{
-		Ongoing - Each Player;
-		All;
-		All;
-	}
-
-	conditions
-	{
-		Event Player == Host Player;
-		Is Button Held(Event Player, Reload) == True;
-	}
-
-	actions
-	{
-		Clear Status(Filtered Array(All Players(All Teams), Not(Is Dummy Bot(Current Array Element))), Phased Out);
-		Set Player Variable(Event Player, playerToRemove, Ray Cast Hit Player(Eye Position(Event Player), Add(Eye Position(Event Player),
-			Multiply(Facing Direction Of(Event Player), 20)), All Players(All Teams), Event Player, True));
-        Teleport(Player Variable(Event Player, playerToRemove), Global Variable(banTpLocation));
-		Set Status(Player Variable(Event Player, playerToRemove), Null, Frozen, 30);
-		Wait(0.016, Ignore Condition);
-		Set Status(All Players(All Teams), Null, Phased Out, 9999);
-		Set Player Variable(Event Player, playerToRemove, Null);
-	}
-}
+rule("Bans for host player"){event{Ongoing - Each Player;All;All;}conditions{Event Player == Host Player;Is Button Held(Event Player, Reload) == True;}actions{Clear Status(Filtered Array(All Players(All Teams), Not(Is Dummy Bot(Current Array Element))), Phased Out);Set Player Variable(Event Player, playerToRemove, Ray Cast Hit Player(Eye Position(Event Player), Add(Eye Position(Event Player),Multiply(Facing Direction Of(Event Player), 20)), All Players(All Teams), Event Player, True));Teleport(Player Variable(Event Player, playerToRemove), Global Variable(banTpLocation));Set Status(Player Variable(Event Player, playerToRemove), Null, Frozen, 30);Wait(0.016, Ignore Condition);Set Status(All Players(All Teams), Null, Phased Out, 9999);Set Player Variable(Event Player, playerToRemove, Null);}}
 
 rule("Destroy bots (workaround for Destroy All Dummy Bots bug)")
 {
@@ -628,5 +602,6 @@ const PIANO_POSITION_SCRIPTS = {
 const SCRIPTS = {
     restrictAbilities: "Disallow Button(Event Player, Melee);Set Ability 1 Enabled(Event Player, False);Set Ability 2 Enabled(Event Player, False);Set Ultimate Ability Enabled(Event Player, False);If(Compare(Event Player, !=, Host Player));Set Primary Fire Enabled(Event Player, False);Set Secondary Fire Enabled(Event Player, False);End;If(Compare(Hero Of(Event Player), ==, Hero(Wrecking Ball)));Disallow Button(Event Player, Crouch);End;",
     botsInvisible: "Set Invisible(Event Player, All);",
-    restrictSlots: "Max FFA Players: 12"
+    restrictSlots: "Max FFA Players: 12",
+    includeBanSystem: 'rule("Bans for host player"){event{Ongoing - Each Player;All;All;}conditions{Event Player == Host Player;Is Button Held(Event Player, Reload) == True;}actions{Clear Status(Filtered Array(All Players(All Teams), Not(Is Dummy Bot(Current Array Element))), Phased Out);Set Player Variable(Event Player, playerToRemove, Ray Cast Hit Player(Eye Position(Event Player), Add(Eye Position(Event Player),Multiply(Facing Direction Of(Event Player), 20)), All Players(All Teams), Event Player, True));Teleport(Player Variable(Event Player, playerToRemove), Global Variable(banTpLocation));Set Status(Player Variable(Event Player, playerToRemove), Null, Frozen, 30);Wait(0.016, Ignore Condition);Set Status(All Players(All Teams), Null, Phased Out, 9999);Set Player Variable(Event Player, playerToRemove, Null);}}'
 }
