@@ -335,7 +335,7 @@
                 restrictSlots: document.getElementById("restrictSlotsCheckbox").checked,
                 selectedPiano: document.getElementById("pianoSelectInput").value,
                 restrictAbilities: document.getElementById("restrictAbilitiesCheckbox").checked,
-                includeBanSystem: document.getElementById("includeBanSystemCheckbox").checked
+                //includeBanSystem: document.getElementById("includeBanSystemCheckbox").checked
             };
 
             let customGameSettings = BASE_SETTINGS;
@@ -354,11 +354,12 @@
             if (!userSettings.restrictAbilities) {
                 customGameSettings = customGameSettings.replace(SCRIPTS["restrictAbilities"], "");
             }
-
+            
+            /*
             if (!userSettings.includeBanSystem) {
                 customGameSettings = customGameSettings.replace(SCRIPTS["includeBanSystem"], "");
             }
-
+            */
             return customGameSettings;
             
         }
