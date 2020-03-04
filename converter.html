@@ -196,7 +196,7 @@
         const ERRORS = {
             MIDI_CONVERTER_ERROR: "Error: the MIDI file could not be converted.\n",
             TRANSLATION_ERROR: "Error: the generated workshop script could not be translated.\n",
-            FILE_FORMAT_ERROR: "Error: the uploaded file could not be read as a MIDI file.\n"
+            GENERAL_ERROR: "An error occurred. Please check the console: F12 (Firefox) or Ctrl+Shift+J (Chrome).\n"
         };
 
         // Maximum amount of players in an Overwatch match
@@ -216,11 +216,12 @@
 
             reader.onload = function (event) {
                 try {
+                    // Read MIDI file with Tonejs/Midi
                     let mid = new Midi(event.target.result);
                     parseMidi(mid);
                 }
                 catch (error) {
-                    updateElementValue("scriptOutput-textarea", ERRORS["FILE_FORMAT_ERROR"]);
+                    updateElementValue("scriptOutput-textarea", ERRORS["GENERAL_ERROR"]);
                     console.error(error);
                 }
             }
@@ -229,6 +230,8 @@
         
 
         function parseMidi(mid) {
+            // Converts MIDI data, outputs it
+
             const converterSettings = getConverterSettings();
             let convertedMidi = {};
             
@@ -243,16 +246,12 @@
 
             if (convertedMidi.rules == "") {
                 let output = "";
-                if (convertedMidi.errors.length != 0) {
-                    for (let error of convertedMidi.errors) {
-                        output += error;
-                    } 
-                }
-                if (convertedMidi.warnings.length != 0) {
-                    for (let warning of convertedMidi.warnings) {
-                        scriptOutput += warning;
-                    } 
-                }
+                for (let error of convertedMidi.errors) {
+                    output += error;
+                } 
+                for (let warning of convertedMidi.warnings) {
+                    output += warning;
+                } 
                 updateElementValue("scriptOutput-textarea", output);
 
             } else {

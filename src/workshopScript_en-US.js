@@ -1,7 +1,6 @@
 // Custom game settings (lobby settings + workshop script) can only be imported 
 // if their language matches the text language of the game.
-
-// Only the English workshop script is needed, as OverPy can translate it to all other languages.
+// Only the English settings are needed, as OverPy can translate them to all other languages.
 const BASE_SETTINGS = `settings
 {
     main
@@ -436,7 +435,7 @@ const CONVERTED_MIDI_VARS = `variables
 // Coordinates of player and bot spawns, 
 // as well as directions for all 64 keys on the two pianos in Paris (point A and point B)
 const PIANO_POSITION_SCRIPTS = {
-    pointA: `rule("Note positions array init")
+    pointA: `rule("Note positions array init, Point A")
 {
     event
     {
@@ -516,7 +515,7 @@ const PIANO_POSITION_SCRIPTS = {
         Set Global Variable(banTpLocation, Vector(-10.008, 15.802, -40.435));
     }
 }`,
-    pointB: `rule("Note positions array init")
+    pointB: `rule("Note positions array init, Point B")
 {
     event
     {
