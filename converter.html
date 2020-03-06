@@ -128,7 +128,7 @@
                     </div>
                 </div>
                 <input class="checkboxInput" type="checkbox" id="restrictAbilitiesCheckbox">
-                <!--
+                
                 <div class="tooltipWrapper">
                     <div class="tooltip">Bans for host player
                         <span class="tooltipText">Include a ban system for temporarily removing troublemakers: 
@@ -136,7 +136,6 @@
                     </div>
                 </div>
                 <input class="checkboxInput" type="checkbox" id="includeBanSystemCheckbox">
-                -->
 
             </div>
         </div>
@@ -334,7 +333,7 @@
                 restrictSlots: document.getElementById("restrictSlotsCheckbox").checked,
                 selectedPiano: document.getElementById("pianoSelectInput").value,
                 restrictAbilities: document.getElementById("restrictAbilitiesCheckbox").checked,
-                //includeBanSystem: document.getElementById("includeBanSystemCheckbox").checked
+                includeBanSystem: document.getElementById("includeBanSystemCheckbox").checked
             };
 
             let customGameSettings = BASE_SETTINGS;
@@ -354,11 +353,9 @@
                 customGameSettings = customGameSettings.replace(SCRIPTS["restrictAbilities"], "");
             }
             
-            /*
             if (!userSettings.includeBanSystem) {
                 customGameSettings = customGameSettings.replace(SCRIPTS["includeBanSystem"], "");
             }
-            */
             return customGameSettings;
             
         }
