@@ -35,8 +35,8 @@ If all goes well, you will get some info about the conversion, and a long string
 - Interact (F): start and stop playing the song
 
 You can control the speed at which the song is played:
-- Primary Fire: Speed up by 5 %-points
-- Secondary Fire: Slow down by 5 %-points  
+- Crouch + Primary Fire: Speed up by 5 %-points
+- Crouch + Secondary Fire: Slow down by 5 %-points  
 
 Note: the minimum time between two notes/chords is 0.064 seconds. If there are delays smaller than that, they are increased to 0.064s. Additionally, a negative speed value will make delays between *all* chords 0.064s.
 

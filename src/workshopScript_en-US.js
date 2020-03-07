@@ -5,7 +5,7 @@ const BASE_SETTINGS = `settings
 {
     main
     {
-        Description: "Overwatch MIDI Pianist mode by ScroogeD. To avoid crashes, make sure to click Back To Lobby if already in game, then start game normally. Convert MIDI songs to Overwatch piano songs with this converter on GitHub: github.com/ScroogeD2/owmidiconverter"
+        Description: "Overwatch MIDI Pianist mode by ScroogeD. Convert MIDI songs to Overwatch piano songs with this converter on GitHub: github.com/ScroogeD2/owmidiconverter"
     }
     
     lobby
@@ -110,7 +110,7 @@ rule("Global init")
         Create HUD Text(All Players(All Teams), Null, Null, Custom String("Speed: {0}%", Global Variable(speedPercent), Null, Null), Right,
             0, White, White, White, Visible To and String, Default Visibility);
         Create HUD Text(All Players(All Teams), Null, Null, Custom String(
-            "Host player: Press Interact to start and stop the song, and Primary or Secondary Fire to change speed", Null, Null, Null),
+            "Host player: Press Interact to start and stop the song, and Crouch+Primary or Crouch+Secondary Fire to change speed", Null, Null, Null),
             Top, 0, White, White, White, Visible To and String, Default Visibility);
         Create HUD Text(All Players(All Teams), Null, Custom String("By ScroogeD#5147 (Discord)", Null, Null, Null), Null, Left, 0, White,
             Yellow, White, Visible To and String, Default Visibility);
@@ -183,6 +183,7 @@ rule("Primary fire: increase speed")
     conditions
     {
         Event Player == Host Player;
+        Is Button Held(Event Player, Crouch) == True;
         Is Button Held(Event Player, Primary Fire) == True;
     }
 
@@ -204,6 +205,7 @@ rule("Secondary fire: decrease speed")
     conditions
     {
         Event Player == Host Player;
+        Is Button Held(Event Player, Crouch) == True;
         Is Button Held(Event Player, Secondary Fire) == True;
     }
 
@@ -403,7 +405,7 @@ rule("Play note")
     }
 }
 
-rule("Bans for host player"){event{Ongoing - Each Player;All;All;}conditions{Event Player == Host Player;Is Button Held(Event Player, Reload) == True;}actions{Clear Status(Filtered Array(All Players(All Teams), Not(Is Dummy Bot(Current Array Element))), Phased Out);Set Player Variable(Event Player, playerToRemove, Ray Cast Hit Player(Eye Position(Event Player), Add(Eye Position(Event Player),Multiply(Facing Direction Of(Event Player), 20)), All Players(All Teams), Event Player, True));Teleport(Player Variable(Event Player, playerToRemove), Global Variable(banTpLocation));Set Status(Player Variable(Event Player, playerToRemove), Null, Frozen, 30);Wait(0.016, Ignore Condition);Set Status(All Players(All Teams), Null, Phased Out, 9999);Set Player Variable(Event Player, playerToRemove, Null);}}
+rule("Bans for host player"){event{Ongoing - Each Player;All;All;}conditions{Event Player == Host Player;Is Button Held(Event Player, Reload) == True;Is Button Held(Event Player, Crouch) == True;}actions{Clear Status(Filtered Array(All Players(All Teams), Not(Is Dummy Bot(Current Array Element))), Phased Out);Wait(0.032, Ignore Condition);Set Player Variable(Event Player, playerToRemove, Ray Cast Hit Player(Eye Position(Event Player), Add(Eye Position(Event Player),Multiply(Facing Direction Of(Event Player), 20)), All Players(All Teams), Event Player, True));Teleport(Player Variable(Event Player, playerToRemove), Global Variable(banTpLocation));Set Status(Player Variable(Event Player, playerToRemove), Null, Frozen, 30);Wait(0.032, Ignore Condition);Set Status(All Players(All Teams), Null, Phased Out, 9999);Set Player Variable(Event Player, playerToRemove, Null);}}
 
 rule("Destroy bots (workaround for Destroy All Dummy Bots bug)")
 {
@@ -602,5 +604,5 @@ const SCRIPTS = {
     restrictAbilities: "Disallow Button(Event Player, Melee);Set Ability 1 Enabled(Event Player, False);Set Ability 2 Enabled(Event Player, False);Set Ultimate Ability Enabled(Event Player, False);If(Compare(Event Player, !=, Host Player));Set Primary Fire Enabled(Event Player, False);Set Secondary Fire Enabled(Event Player, False);End;If(Compare(Hero Of(Event Player), ==, Hero(Wrecking Ball)));Disallow Button(Event Player, Crouch);End;",
     botsInvisible: "Set Invisible(Event Player, All);",
     restrictSlots: "Max FFA Players: 12",
-    includeBanSystem: 'rule("Bans for host player"){event{Ongoing - Each Player;All;All;}conditions{Event Player == Host Player;Is Button Held(Event Player, Reload) == True;}actions{Clear Status(Filtered Array(All Players(All Teams), Not(Is Dummy Bot(Current Array Element))), Phased Out);Set Player Variable(Event Player, playerToRemove, Ray Cast Hit Player(Eye Position(Event Player), Add(Eye Position(Event Player),Multiply(Facing Direction Of(Event Player), 20)), All Players(All Teams), Event Player, True));Teleport(Player Variable(Event Player, playerToRemove), Global Variable(banTpLocation));Set Status(Player Variable(Event Player, playerToRemove), Null, Frozen, 30);Wait(0.016, Ignore Condition);Set Status(All Players(All Teams), Null, Phased Out, 9999);Set Player Variable(Event Player, playerToRemove, Null);}}'
+    includeBanSystem: 'rule("Bans for host player"){event{Ongoing - Each Player;All;All;}conditions{Event Player == Host Player;Is Button Held(Event Player, Reload) == True;Is Button Held(Event Player, Crouch) == True;}actions{Clear Status(Filtered Array(All Players(All Teams), Not(Is Dummy Bot(Current Array Element))), Phased Out);Wait(0.032, Ignore Condition);Set Player Variable(Event Player, playerToRemove, Ray Cast Hit Player(Eye Position(Event Player), Add(Eye Position(Event Player),Multiply(Facing Direction Of(Event Player), 20)), All Players(All Teams), Event Player, True));Teleport(Player Variable(Event Player, playerToRemove), Global Variable(banTpLocation));Set Status(Player Variable(Event Player, playerToRemove), Null, Frozen, 30);Wait(0.032, Ignore Condition);Set Status(All Players(All Teams), Null, Phased Out, 9999);Set Player Variable(Event Player, playerToRemove, Null);}}'
 }
