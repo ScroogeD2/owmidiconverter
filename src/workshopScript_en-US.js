@@ -112,7 +112,7 @@ rule("Global init")
         Create HUD Text(All Players(All Teams), Null, Null, Custom String(
             "Host player: Press Interact to start and stop the song, and Crouch+Primary or Crouch+Secondary Fire to change speed", Null, Null, Null),
             Top, 0, White, White, White, Visible To and String, Default Visibility);
-        Create HUD Text(All Players(All Teams), Null, Custom String("By ScroogeD#5147 (Discord)", Null, Null, Null), Null, Left, 0, White,
+        Create HUD Text(All Players(All Teams), Null, Custom String("By ScroogeD", Null, Null, Null), Null, Left, 0, White,
             Yellow, White, Visible To and String, Default Visibility);
         Create HUD Text(All Players(All Teams), Null, Custom String("Website: github.com/ScroogeD2/owmidiconverter", Null, Null, Null),
             Null, Left, 1, White, Yellow, White, Visible To and String, Default Visibility);
