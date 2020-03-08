@@ -61,10 +61,6 @@ variables
         8: i
         9: minChordTime
         10: dataArrayIndex
-        11: loopInfo
-        12: loopStartIndex
-        13: loopArrayIndex
-        14: loopCounter
         15: banTpLocation
         19: songData
         20: tempArray
@@ -79,7 +75,6 @@ variables
 
 subroutines
 {
-    0: checkLoop
     1: destroyBots
 }
 
@@ -110,15 +105,15 @@ rule("Global init")
         Create HUD Text(All Players(All Teams), Null, Null, Custom String("Speed: {0}%", Global Variable(speedPercent), Null, Null), Right,
             0, White, White, White, Visible To and String, Default Visibility);
         Create HUD Text(All Players(All Teams), Null, Null, Custom String(
-            "Host player: Press Interact to start and stop the song, and Crouch+Primary or Crouch+Secondary Fire to change speed", Null, Null, Null),
-            Top, 0, White, White, White, Visible To and String, Default Visibility);
-        Create HUD Text(All Players(All Teams), Null, Custom String("By ScroogeD", Null, Null, Null), Null, Left, 0, White,
-            Yellow, White, Visible To and String, Default Visibility);
+            "Host player: Press Interact to start and stop the song, and Crouch+Primary or Crouch+Secondary Fire to change speed", Null,
+            Null, Null), Top, 0, White, White, White, Visible To and String, Default Visibility);
+        Create HUD Text(All Players(All Teams), Null, Custom String("By ScroogeD", Null, Null, Null), Null, Left, 0, White, Yellow, White,
+            Visible To and String, Default Visibility);
         Create HUD Text(All Players(All Teams), Null, Custom String("Website: github.com/ScroogeD2/owmidiconverter", Null, Null, Null),
             Null, Left, 1, White, Yellow, White, Visible To and String, Default Visibility);
         Create HUD Text(Filtered Array(All Players(All Teams), Has Status(Current Array Element, Frozen)), Custom String(
-			"The host player has decided to remove you temporarily. Please wait a minute before rejoining.", Null, Null, Null), Null, Null,
-			Top, 1, White, White, White, Visible To and String, Default Visibility);
+            "The host player has decided to remove you temporarily. Please wait a minute before rejoining.", Null, Null, Null), Null, Null,
+            Top, 1, White, White, White, Visible To and String, Default Visibility);
     }
 }
 
@@ -296,58 +291,26 @@ rule("Play piano")
     actions
     {
         While(And(Compare(Global Variable(dataArrayIndex), <, Count Of(Global Variable(songData))), Global Variable(songPlaying)));
-            If(Compare(Add(Global Variable(chordArrayIndex), Y Component Of(Value In Array(Value In Array(Global Variable(songData),
-                Global Variable(dataArrayIndex)), Global Variable(chordArrayIndex)))), >, Count Of(Value In Array(Global Variable(songData),
+            If(Compare(Add(Global Variable(chordArrayIndex), Value In Array(Value In Array(Global Variable(songData), Global Variable(
+                dataArrayIndex)), Add(Global Variable(chordArrayIndex), 1))), >, Count Of(Value In Array(Global Variable(songData),
                 Global Variable(dataArrayIndex)))));
                 Modify Global Variable(dataArrayIndex, Add, 1);
                 Set Global Variable(chordArrayIndex, 0);
             End;
             Set Player Variable(Global Variable(bots), readNote, True);
-            Wait(Max(Divide(Global Variable(minChordTime), 2), Subtract(Divide(X Component Of(Value In Array(Value In Array(Global Variable(
-                songData), Global Variable(dataArrayIndex)), Global Variable(chordArrayIndex))), Divide(Global Variable(speedPercent), 100)),
-                Divide(Global Variable(minChordTime), 2))), Ignore Condition);
+            Wait(Max(Divide(Global Variable(minChordTime), 2), Subtract(Divide(Value In Array(Value In Array(Global Variable(songData),
+                Global Variable(dataArrayIndex)), Global Variable(chordArrayIndex)), Divide(Global Variable(speedPercent), 100)), Divide(
+                Global Variable(minChordTime), 2))), Ignore Condition);
             Set Player Variable(Global Variable(bots), playNote, True);
             Wait(Divide(Global Variable(minChordTime), 2), Ignore Condition);
-            If(Compare(Z Component Of(Value In Array(Value In Array(Global Variable(songData), Global Variable(dataArrayIndex)),
-                Global Variable(chordArrayIndex))), !=, 0));
-                Call Subroutine(checkLoop);
-            End;
-            Modify Global Variable(chordArrayIndex, Add, Add(Y Component Of(Value In Array(Value In Array(Global Variable(songData),
-                Global Variable(dataArrayIndex)), Global Variable(chordArrayIndex))), 1));
+            Modify Global Variable(chordArrayIndex, Add, Add(Value In Array(Value In Array(Global Variable(songData), Global Variable(
+                dataArrayIndex)), Add(Global Variable(chordArrayIndex), 1)), 2));
         End;
         Set Global Variable(songPlaying, 0);
         Set Global Variable(chordArrayIndex, 1);
         Set Global Variable(dataArrayIndex, 0);
         Call Subroutine(destroyBots);
         Set Global Variable(bots, Empty Array);
-    }
-}
-
-rule("Handle loops")
-{
-    event
-    {
-        Subroutine;
-        checkLoop;
-    }
-
-    actions
-    {
-        Set Global Variable(loopInfo, Z Component Of(Value In Array(Value In Array(Global Variable(songData), Global Variable(
-            dataArrayIndex)), Global Variable(chordArrayIndex))));
-        If(Compare(Global Variable(loopInfo), ==, 2));
-            Set Global Variable(loopStartIndex, Global Variable(chordArrayIndex));
-            Set Global Variable(loopArrayIndex, Global Variable(dataArrayIndex));
-        Else If(And(Compare(Global Variable(loopInfo), ==, 3), Not(Global Variable(loopCounter))));
-            Set Global Variable(chordArrayIndex, Global Variable(loopStartIndex));
-            Set Global Variable(dataArrayIndex, Global Variable(loopArrayIndex));
-            Modify Global Variable(loopCounter, Add, 1);
-        Else If(Compare(Global Variable(loopInfo), ==, 4));
-            Set Global Variable(chordArrayIndex, Global Variable(loopStartIndex));
-            Set Global Variable(dataArrayIndex, Global Variable(loopArrayIndex));
-        Else;
-            Set Global Variable(loopCounter, 0);
-        End;
     }
 }
 
@@ -368,10 +331,10 @@ rule("Read note")
     actions
     {
         Set Player Variable(Event Player, readNote, False);
-        If(Not(Compare(Player Variable(Event Player, voiceIndex), >, Add(Y Component Of(Value In Array(Value In Array(Global Variable(
-            songData), Global Variable(dataArrayIndex)), Global Variable(chordArrayIndex))), -1.000))));
+        If(Not(Compare(Player Variable(Event Player, voiceIndex), >, Subtract(Value In Array(Value In Array(Global Variable(songData),
+            Global Variable(dataArrayIndex)), Add(Global Variable(chordArrayIndex), 1)), 1))));
             Set Player Variable(Event Player, currentPitch, Value In Array(Value In Array(Global Variable(songData), Global Variable(
-                dataArrayIndex)), Add(Add(Global Variable(chordArrayIndex), Player Variable(Event Player, voiceIndex)), 1)));
+                dataArrayIndex)), Add(Add(Global Variable(chordArrayIndex), Player Variable(Event Player, voiceIndex)), 2)));
             Set Facing(Event Player, Direction From Angles(Y Component Of(Value In Array(Global Variable(notePositions), Player Variable(
                 Event Player, currentPitch))), Z Component Of(Value In Array(Global Variable(notePositions), Player Variable(Event Player,
                 currentPitch)))), To World);
@@ -395,8 +358,8 @@ rule("Play note")
 
     actions
     {
-        If(Not(Compare(Player Variable(Event Player, voiceIndex), >, Add(Y Component Of(Value In Array(Value In Array(Global Variable(
-            songData), Global Variable(dataArrayIndex)), Global Variable(chordArrayIndex))), -1.000))));
+        If(Not(Compare(Player Variable(Event Player, voiceIndex), >, Subtract(Value In Array(Value In Array(Global Variable(songData),
+            Global Variable(dataArrayIndex)), Add(Global Variable(chordArrayIndex), 1)), 1))));
             Start Holding Button(Event Player, Primary Fire);
             Wait(Min(0.160, Divide(Global Variable(minChordTime), 2)), Ignore Condition);
             Stop Holding Button(Event Player, Primary Fire);
