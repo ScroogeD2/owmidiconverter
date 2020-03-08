@@ -58,7 +58,7 @@ See [issues on Github.](https://github.com/ScroogeD2/owmidiconverter/issues)
 
 # Workshop array structure
 
-The data read by the Overwatch workshop only the necessary information to play a song: pitches and timings of notes, saved in workshop arrays. Each chord can have between 1 and 11 pitches, and consists of the following elements:
+The data read by the Overwatch workshop contains only the necessary information to play a song: pitches and timings of notes, saved in workshop arrays. Each chord can have between 1 and 11 pitches, and consists of the following elements:
 
 ```
 array[i] = Time
@@ -75,7 +75,7 @@ Time is the time interval between the current chord and the previous chord, and 
 
 The elements following the first two are the pitches in the chord. Similar to the pitches of MIDI files, one integer is one semitone. The scale starts at 0 (C1) and ends at 63 (E6). For example, C4 (262hz) has a pitch of 36.
 
-The data is divided into several workshop rules to avoid hitting the workshop rule size limit. Each rule contains about 990 array elements. At the end of each rule, the array is saved into its own index of the SongData array: SongData = [array0, array1, array2, ...]. The maximum amount of voices needed in any chord is saved in the first element of the first array.
+The data is divided into several workshop rules to avoid hitting the workshop rule size limit, with each rule containing around 990 array elements. At the end of each rule, the generated array is saved into its own index of the SongData array: SongData = [array0, array1, array2, ...]. The maximum amount of voices needed in any chord is saved in the first element of the first array.
 
 ### EXAMPLE
 The following array contains a song that plays the note G4 (pitch 43) at time 0, followed by a C minor chord (pitches 48, 51, 55) at time 0.5, followed by another G4 note at time 2.0. The maximum amount of voices needed is 3, which is saved as the first element of the whole array:
