@@ -29,18 +29,11 @@
                     <span class="tooltipText">The time (seconds) in the song
                         when the script starts reading the MIDI data.
                         Set to values other than 0
-                        to start reading from different parts of the file.</span>
+                        to start reading from different parts of the file. The converter will automatically determine 
+                        the maximum amount of data it can fit into the generated script.</span>
                 </div>
             </div>
             <input class="textInput" type="text" id="startTimeInput" value="0">
-
-            <div class="tooltipWrapper">
-                <div class="tooltip">Stop At:
-                    <span class="tooltipText">The time (seconds) in the song
-                        when the script stops reading MIDI data.</span>
-                </div>
-            </div>
-            <input class="textInput" type="text" id="stopTimeInput" value="100">
 
             <div class="tooltipWrapper">
                 <div class="tooltip">Max Voices:
@@ -50,16 +43,6 @@
                 </div>
             </div>
             <input class="textInput" type="text" id="maxPitchesInput" value="6">
-
-            <div class="tooltipWrapper">
-                <div class="tooltip">Max Array Elements:
-                    <span class="tooltipText">Maximum amount of elements in a single array of the 
-                        resulting workshop script that contains the song, between 12 and 999. Fewer elements may cause more 
-                        frequent stuttering, while a high amount of elements may result in too large rule sizes. 
-                        If unsure, use the default value</span>
-                </div>
-            </div>
-            <input class="textInput" type="text" id="maxElementsInput" value="600">
 
             <div class="tooltipWrapper">
                 <div class="tooltip">Language:
@@ -132,7 +115,7 @@
                 <div class="tooltipWrapper">
                     <div class="tooltip">Bans for host player
                         <span class="tooltipText">Include a ban system for temporarily removing troublemakers: 
-                            When host player presses Reload (R) + Crouch (Ctrl), the player he is aiming towards will be teleported out for 30 seconds.</span>
+                            When the host player presses Reload (R) + Crouch (Ctrl), the player he is aiming towards will be teleported out for 30 seconds.</span>
                     </div>
                 </div>
                 <input class="checkboxInput" type="checkbox" id="includeBanSystemCheckbox">
@@ -283,7 +266,7 @@
                 }
 
                 scriptOutput += `MIDI file successfully read from ${converterSettings["startTime"]} second(s) ` +
-                                `to ${roundToPlaces(converterSettings["stopTime"], 3)} second(s).\n` +
+                                `to ${roundToPlaces(convertedMidi.stopTime, 1)} second(s).\n` +
                                 `${convertedMidi.totalArrays} Overwatch array(s) created ` +
                                 `with a total of ${convertedMidi.totalElements} elements.\n` +
                                 `Language: ${scriptLanguage}\n`;
