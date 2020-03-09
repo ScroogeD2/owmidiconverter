@@ -64,18 +64,18 @@ variables
         15: banTpLocation
         19: songData
         20: tempArray
+        31: currentBotIndex
+        32: waitTime
 
     player:
-        0: readNote
         1: playNote
         2: currentPitch
         3: playerToRemove
-        4: voiceIndex
 }
 
 subroutines
 {
-    1: destroyBots
+    0: destroyBots
 }
 
 rule("By ScroogeD#5147 (Discord)")
@@ -202,6 +202,7 @@ rule("Secondary fire: decrease speed")
         Event Player == Host Player;
         Is Button Held(Event Player, Crouch) == True;
         Is Button Held(Event Player, Secondary Fire) == True;
+        Global Variable(speedPercent) > 5;
     }
 
     actions
@@ -240,10 +241,6 @@ rule("Interact: create dummy bots, start playing")
             Wait(0.016, Ignore Condition);
         End;
         Set Global Variable(i, 0);
-        For Global Variable(i, 0, Count Of(Global Variable(bots)), 1);
-            Set Player Variable(Value In Array(Global Variable(bots), Global Variable(i)), voiceIndex, Global Variable(i));
-        End;
-        Set Global Variable(i, 0);
         Wait(2.500, Ignore Condition);
         Set Global Variable(songPlaying, 2);
     }
@@ -278,68 +275,48 @@ rule("Interact: stop playing")
 
 rule("Play piano")
 {
-    event
-    {
-        Ongoing - Global;
-    }
+	event
+	{
+		Ongoing - Global;
+	}
 
-    conditions
-    {
-        Global Variable(songPlaying) == 2;
-    }
+	conditions
+	{
+		Global Variable(songPlaying) == 2;
+	}
 
-    actions
-    {
-        While(And(Compare(Global Variable(dataArrayIndex), <, Count Of(Global Variable(songData))), Global Variable(songPlaying)));
-            If(Compare(Add(Global Variable(chordArrayIndex), Value In Array(Value In Array(Global Variable(songData), Global Variable(
-                dataArrayIndex)), Add(Global Variable(chordArrayIndex), 1))), >, Count Of(Value In Array(Global Variable(songData),
-                Global Variable(dataArrayIndex)))));
-                Modify Global Variable(dataArrayIndex, Add, 1);
-                Set Global Variable(chordArrayIndex, 0);
-            End;
-            Set Player Variable(Global Variable(bots), readNote, True);
-            Wait(Max(Divide(Global Variable(minChordTime), 2), Subtract(Divide(Value In Array(Value In Array(Global Variable(songData),
-                Global Variable(dataArrayIndex)), Global Variable(chordArrayIndex)), Divide(Global Variable(speedPercent), 100)), Divide(
-                Global Variable(minChordTime), 2))), Ignore Condition);
-            Set Player Variable(Global Variable(bots), playNote, True);
-            Wait(Divide(Global Variable(minChordTime), 2), Ignore Condition);
-            Modify Global Variable(chordArrayIndex, Add, Add(Value In Array(Value In Array(Global Variable(songData), Global Variable(
-                dataArrayIndex)), Add(Global Variable(chordArrayIndex), 1)), 2));
-        End;
-        Set Global Variable(songPlaying, 0);
-        Set Global Variable(chordArrayIndex, 1);
-        Set Global Variable(dataArrayIndex, 0);
-        Call Subroutine(destroyBots);
-        Set Global Variable(bots, Empty Array);
-    }
-}
-
-rule("Read note")
-{
-    event
-    {
-        Ongoing - Each Player;
-        All;
-        All;
-    }
-
-    conditions
-    {
-        Player Variable(Event Player, readNote) == True;
-    }
-
-    actions
-    {
-        Set Player Variable(Event Player, readNote, False);
-        If(Not(Compare(Player Variable(Event Player, voiceIndex), >, Subtract(Value In Array(Value In Array(Global Variable(songData),
-            Global Variable(dataArrayIndex)), Add(Global Variable(chordArrayIndex), 1)), 1))));
-            Set Player Variable(Event Player, currentPitch, Value In Array(Value In Array(Global Variable(songData), Global Variable(
-                dataArrayIndex)), Add(Add(Global Variable(chordArrayIndex), Player Variable(Event Player, voiceIndex)), 2)));
-            Set Facing(Event Player, Direction From Angles(Y Component Of(Value In Array(Global Variable(notePositions), Player Variable(
-                Event Player, currentPitch))), Z Component Of(Value In Array(Global Variable(notePositions), Player Variable(Event Player,
-                currentPitch)))), To World);
-        End;
-    }
+	actions
+	{
+		While(And(Compare(Global Variable(dataArrayIndex), <, Count Of(Global Variable(songData))), Global Variable(songPlaying)));
+			If(Compare(Add(Global Variable(chordArrayIndex), Value In Array(Value In Array(Global Variable(songData), Global Variable(
+				dataArrayIndex)), Add(Global Variable(chordArrayIndex), 1))), >, Count Of(Value In Array(Global Variable(songData),
+				Global Variable(dataArrayIndex)))));
+				Modify Global Variable(dataArrayIndex, Add, 1);
+				Set Global Variable(chordArrayIndex, 0);
+			End;
+            Modify Global Variable(waitTime, Add, Multiply(Value In Array(Value In Array(Global Variable(songData), Global Variable(
+                dataArrayIndex)), Global Variable(chordArrayIndex)), Divide(100, Global Variable(speedPercent))));
+			While(Compare(Global Variable(waitTime), >=, 0.016));
+				Wait(0.016, Ignore Condition);
+				Modify Global Variable(waitTime, Subtract, 0.016);
+			End;
+			For Global Variable(i, 0, Value In Array(Value In Array(Global Variable(songData), Global Variable(dataArrayIndex)), Add(
+				Global Variable(chordArrayIndex), 1)), 1);
+				Set Player Variable(Value In Array(Global Variable(bots), Global Variable(currentBotIndex)), playNote, True);
+				Set Player Variable(Value In Array(Global Variable(bots), Global Variable(currentBotIndex)), currentPitch, Value In Array(
+					Value In Array(Global Variable(songData), Global Variable(dataArrayIndex)), Add(Add(Global Variable(chordArrayIndex), 2),
+					Global Variable(i))));
+				Set Global Variable(currentBotIndex, Modulo(Add(Global Variable(currentBotIndex), 1), Count Of(Global Variable(bots))));
+			End;
+			Modify Global Variable(chordArrayIndex, Add, Add(Value In Array(Value In Array(Global Variable(songData), Global Variable(
+				dataArrayIndex)), Add(Global Variable(chordArrayIndex), 1)), 2));
+		End;
+		Set Global Variable(songPlaying, 0);
+		Set Global Variable(chordArrayIndex, 1);
+		Set Global Variable(dataArrayIndex, 0);
+		Call Subroutine(destroyBots);
+		Set Global Variable(bots, Empty Array);
+	}
 }
 
 rule("Play note")
@@ -358,13 +335,36 @@ rule("Play note")
 
     actions
     {
-        If(Not(Compare(Player Variable(Event Player, voiceIndex), >, Subtract(Value In Array(Value In Array(Global Variable(songData),
-            Global Variable(dataArrayIndex)), Add(Global Variable(chordArrayIndex), 1)), 1))));
-            Start Holding Button(Event Player, Primary Fire);
-            Wait(Min(0.160, Divide(Global Variable(minChordTime), 2)), Ignore Condition);
-            Stop Holding Button(Event Player, Primary Fire);
-        End;
+        Set Facing(Event Player, Direction From Angles(Y Component Of(Value In Array(Global Variable(notePositions), Player Variable(
+            Event Player, currentPitch))), Z Component Of(Value In Array(Global Variable(notePositions), Player Variable(Event Player,
+            currentPitch)))), To World);
+        Wait(0.048, Ignore Condition);
+        Start Holding Button(Event Player, Primary Fire);
+        Wait(0.032, Ignore Condition);
+        Stop Holding Button(Event Player, Primary Fire);
         Set Player Variable(Event Player, playNote, False);
+    }
+}
+
+rule("Race condition workaround for very high playing speeds")
+{
+    event
+    {
+        Ongoing - Each Player;
+        All;
+        All;
+    }
+
+    conditions
+    {
+        Player Variable(Event Player, playNote) == True;
+    }
+
+    actions
+    {
+        Wait(0.200, Abort When False);
+        Set Player Variable(Event Player, playNote, False);
+        Loop;
     }
 }
 
