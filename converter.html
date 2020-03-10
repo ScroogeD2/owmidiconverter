@@ -36,13 +36,12 @@
             <input class="textInput" type="text" id="startTimeInput" value="0">
 
             <div class="tooltipWrapper">
-                <div class="tooltip">Max Voices:
-                    <span class="tooltipText">The maximum amount of bots that will be playing, between 1 and 11. The converter 
-                        automatically determines how many are needed, but will never spawn more than this value. Bots may despawn 
-                        if the amount of heroes (players + bots) in the custom game exceeds 12.</span>
+                <div class="tooltip">Voices:
+                    <span class="tooltipText">The amount of bots that will be playing, between 6 and 11. 
+                        Adding more bots may improve the end result for the cost of removing player slots from the game.</span>
                 </div>
             </div>
-            <input class="textInput" type="text" id="maxPitchesInput" value="6">
+            <input class="textInput" type="text" id="voicesInput" value="6">
 
             <div class="tooltipWrapper">
                 <div class="tooltip">Language:
@@ -88,9 +87,9 @@
                 <input class="checkboxInput" type="checkbox" id="botsInvisibleCheckbox" checked>
 
                 <div class="tooltipWrapper">
-                    <div class="tooltip">Restrict player slots
-                        <span class="tooltipText">Restrict the amount of available player slots based on the amount of bots required for the song.
-                            Enabling this ensures that bots will never despawn due to joining players.</span>
+                    <div class="tooltip">Limit player slots
+                        <span class="tooltipText">Remove player slots from the game based on the amount of bots playing the song.
+                            Disabling this may cause bots to despawn when new players join an already full game.</span>
                     </div>
                 </div>
                 <input class="checkboxInput" type="checkbox" id="restrictSlotsCheckbox" checked>
@@ -106,7 +105,7 @@
                 </select>
 
                 <div class="tooltipWrapper">
-                    <div class="tooltip">Restrict players' abilities
+                    <div class="tooltip">Disable players' abilities
                         <span class="tooltipText">Disable all abilities, ultimates, melee attacks, as well as primary and secondary fires.</span>
                     </div>
                 </div>
@@ -115,7 +114,7 @@
                 <div class="tooltipWrapper">
                     <div class="tooltip">Bans for host player
                         <span class="tooltipText">Include a ban system for temporarily removing troublemakers: 
-                            When the host player presses Reload (R) + Crouch (Ctrl), the player he is aiming towards will be teleported out for 30 seconds.</span>
+                            When the host player presses Crouch (Ctrl) + Reload (R), the player he is aiming towards will be teleported out for 30 seconds.</span>
                     </div>
                 </div>
                 <input class="checkboxInput" type="checkbox" id="includeBanSystemCheckbox">
@@ -257,7 +256,7 @@
                 let scriptOutput = "";
                 scriptOutput += `${convertedMidi.skippedNotes} note(s) left out due to too many overlapping pitches\n` +
                                 `${convertedMidi.transposedNotes} note(s) transposed\n` +
-                                `${convertedMidi.maxPitches} voice(s)\n\n`;
+                                `${converterSettings["voices"]} voice(s)\n\n`;
                 
                 if (convertedMidi.warnings.length != 0) {
                     for (let warning of convertedMidi.warnings) {
@@ -266,9 +265,9 @@
                 }
 
                 scriptOutput += `MIDI file successfully read from ${converterSettings["startTime"]} second(s) ` +
-                                `to ${roundToPlaces(convertedMidi.stopTime, 1)} second(s).\n` +
-                                `${convertedMidi.totalArrays} Overwatch array(s) created ` +
-                                `with a total of ${convertedMidi.totalElements} elements.\n` +
+                                `to ${roundToPlaces(convertedMidi.stopTime, 1)} second(s),\n` +
+                                `${Math.round(100*(convertedMidi.stopTime - converterSettings["startTime"]) / convertedMidi.duration)}% ` +
+                                `of the song converted to workshop arrays.\n` +
                                 `Language: ${scriptLanguage}\n`;
 
                 updateElementValue("scriptOutput-textarea", scriptOutput);

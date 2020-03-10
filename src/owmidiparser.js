@@ -16,16 +16,17 @@ const OCTAVE = 12;
 
 /* Settings for the converter.
     - startTime: time (seconds) in the midi file when this script begins reading the data
-    - maxPitches: maximum amount of pitches allowed in any chord
+    - voices: amount of bots required to play the resulting script, maximum amount of pitches allowed in any chord.
+              At least 6 recommended to make sure all songs play back reasonably well
 */
 const CONVERTER_SETTINGS_INFO = Object.freeze({
-    startTime:		{MIN:0, MAX:Infinity,   DEFAULT:0},
-    maxPitches:		{MIN:1, MAX:11,         DEFAULT:6},
+    startTime:	{MIN:0, MAX:Infinity,   DEFAULT:0},
+    voices:		{MIN:6, MAX:11,         DEFAULT:6},
 });
 
 const DEFAULT_SETTINGS = {
-    startTime:		CONVERTER_SETTINGS_INFO["startTime"]["DEFAULT"],
-    maxPitches:		CONVERTER_SETTINGS_INFO["maxPitches"]["DEFAULT"],
+    startTime:	CONVERTER_SETTINGS_INFO["startTime"]["DEFAULT"],
+    voices:		CONVERTER_SETTINGS_INFO["voices"]["DEFAULT"],
 };
 
 // Maximum amount of elements in a single array of the song data rules.
@@ -61,12 +62,12 @@ function convertMidi(mid, settings={}) {
         string rules:           Overwatch workshop rules containing the song Data,
                                 or an empty string if an error occurred
         int transposedNotes:    Amount of notes transposed to the range of the Overwatch piano
-        int skippedNotes:       Amount of notes skipped due to too many pitches in a chord
-        int maxPitches:         Amount of pitches in the largest chord
+        int skippedNotes:       Amount of notes skipped due to there being too many pitches in a chord
         int totalElements:      Total amount of elements in the song data arrays of the workshop script
         int totalArrays:        Total amount of song data arrays in the workshop script 
-        float stopTime:         The time when the script stopped reading the MIDI file, 
-                                either due to finishing the song or reaching the maximum allowed amount  of data 
+        float duration:         Full duration (seconds) of the MIDI song 
+        float stopTime:         The time (seconds) when the script stopped reading the MIDI file, 
+                                either due to finishing the song or due to reaching the maximum allowed amount of data 
         string[] warnings:      An array containing warnings output by the script
         string[] errors:        An array containing errors output by the script
     */
@@ -89,9 +90,9 @@ function convertMidi(mid, settings={}) {
         rules:              rules, 
         skippedNotes:       chordInfo.skippedNotes, 
         transposedNotes:    chordInfo.transposedNotes,
-        maxPitches:         arrayInfo.maxPitches,
         totalElements:      arrayInfo.totalArrayElements,
         totalArrays:        arrayInfo.totalArrays,
+        duration:           mid.duration,
         stopTime:           arrayInfo.stopTime,
         warnings:           chordInfo.warnings,
         errors:             chordInfo.errors
@@ -136,7 +137,7 @@ function readMidiData(mid, settings) {
             if (chords.has(noteTime)) {
                 if (!chords.get(noteTime).includes(notePitch)) {
 
-                    if (chords.get(noteTime).length < settings["maxPitches"]) {
+                    if (chords.get(noteTime).length < settings["voices"]) {
                         chords.get(noteTime).push(notePitch);
                     } else {
                         skippedNotes += 1;
@@ -179,13 +180,7 @@ function convertToArray(chords, settings) {
     // Converts the contents of the chords map 
     // to a format compatible with Overwatch
 
-    // Sort chords.values() by length and get the length of the 0th element 
-    // to get the amount of pitches in the largest chord
-    let maxPitches = Array.from(chords.values()
-                        ).sort( (a, b) => { return b.length - a.length; }
-                        )[0].length;
-
-    let owArrays = [ [maxPitches] ];
+    let owArrays = [ [settings["voices"]] ];
     let totalArrayElements = 1;
 
     // Add a slight time interval before the first note 
@@ -198,8 +193,10 @@ function convertToArray(chords, settings) {
     let currentArray = 0;
     for (let [currentChordTime, pitches] of chords.entries()) {
 
-        // In each chord, two elements are added (time, amount of pitches), followed by the pitches in the chord
+        // In each chord, two array elements are added (time, amount of pitches), 
+        // followed by one array element for each pitch in the chord
         let amountOfElementsToAdd = 2 + pitches.length;
+        
         if (owArrays[currentArray].length + amountOfElementsToAdd > MAX_SINGLE_ARRAY_ELEMENTS) {
             // currentArray is too long, create a new one
             owArrays.push( [] );
@@ -216,7 +213,7 @@ function convertToArray(chords, settings) {
         owArrays[currentArray].push(roundToPlaces(currentChordTime - prevTime, NOTE_PRECISION));
         // B) the amount of pitches in the chord
         owArrays[currentArray].push(pitches.length);
-        // and C) the pitches in that chord
+        // and C) the pitches in the chord
         for (let pitch of pitches.sort()) {
             owArrays[currentArray].push(pitch);
         }
@@ -232,7 +229,7 @@ function convertToArray(chords, settings) {
 
     let totalArrays = owArrays.length;
 
-    return { owArrays, totalArrayElements, totalArrays, maxPitches, stopTime };
+    return { owArrays, totalArrayElements, totalArrays, stopTime };
 }
 
 
