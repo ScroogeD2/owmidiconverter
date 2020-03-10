@@ -64,21 +64,20 @@
                 <option value="zh-TW">繁體中文</option>
                 <option value="zh-CN">简体中文</option>
             </select>
-
-            <div class="tooltipWrapper">
-                <div class="tooltip">Generate Full Gamemode Settings
-                    <span class="tooltipText">If unchecked, only the workshop rules containing the song will be generated. 
-                        Make sure to remove all "Song Data" rules before pasting in the new script.</span>
-                </div>
-            </div>
-            <input class="checkboxInput" type="checkbox" id="includeFullSettingsCheckBox" checked>
-
         </div>
 
-        <button id="collapseButton" onclick="collapseElementAfter(this)">Ingame options  +</button>
+        <button id="collapseButton" onclick="collapseElementAfter(this)">More options  +</button>
         <div class="collapsible">
 
             <div class="options">
+                <div class="tooltipWrapper">
+                    <div class="tooltip">Generate Full Gamemode Settings
+                        <span class="tooltipText">If unchecked, only the workshop rules containing the song will be generated. 
+                            Make sure to remove all "Song Data" rules before pasting in the new script.</span>
+                    </div>
+                </div>
+                <input class="checkboxInput" type="checkbox" id="includeFullSettingsCheckBox" checked>
+                
                 <div class="tooltipWrapper">
                     <div class="tooltip">Make bots invisible
                         <span class="tooltipText">Make the bots playing the song invisible. Their primary fire remains visible.</span>
