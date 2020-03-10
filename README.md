@@ -34,8 +34,6 @@ You can control the speed at which the song is played:
 - Crouch + Primary Fire: Speed up by 5 %-points
 - Crouch + Secondary Fire: Slow down by 5 %-points  
 
-Note: the minimum time between two notes/chords is 0.064 seconds. If there are delays smaller than that, they are increased to 0.064s. Additionally, a negative speed value will make delays between *all* chords 0.064s.
-
 You can easily remove all game sounds except the piano:
 - **Host player only:** Open the custom game lobby with L, then enter the custom game settings screen. (Optional: if you also want to see the bots playing, you can hide your HUD with Alt+Z)
 - **Any player:** Open the custom game lobby with L. Right click your player icon on the top right corner of the screen, and press Career Profile. (Optional: hide HUD with Alt+Z. Note that Esc -> Career profile also works, but doesn't allow you to hide your HUD.)
