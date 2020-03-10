@@ -59,7 +59,6 @@ variables
         6: defaultFacingDirection
         7: playerSpawn
         8: i
-        9: minChordTime
         10: dataArrayIndex
         15: banTpLocation
         19: songData
@@ -96,7 +95,6 @@ rule("Global init")
     actions
     {
         Set Global Variable(tempArray, Empty Array);
-        Set Global Variable(minChordTime, 0.064);
         Set Global Variable(chordArrayIndex, 1);
         Set Global Variable(bots, Empty Array);
         Set Global Variable(speedPercent, 100);
