@@ -273,48 +273,48 @@ rule("Interact: stop playing")
 
 rule("Play piano")
 {
-	event
-	{
-		Ongoing - Global;
-	}
+    event
+    {
+        Ongoing - Global;
+    }
 
-	conditions
-	{
-		Global Variable(songPlaying) == 2;
-	}
+    conditions
+    {
+        Global Variable(songPlaying) == 2;
+    }
 
-	actions
-	{
-		While(And(Compare(Global Variable(dataArrayIndex), <, Count Of(Global Variable(songData))), Global Variable(songPlaying)));
-			If(Compare(Add(Global Variable(chordArrayIndex), Value In Array(Value In Array(Global Variable(songData), Global Variable(
-				dataArrayIndex)), Add(Global Variable(chordArrayIndex), 1))), >, Count Of(Value In Array(Global Variable(songData),
-				Global Variable(dataArrayIndex)))));
-				Modify Global Variable(dataArrayIndex, Add, 1);
-				Set Global Variable(chordArrayIndex, 0);
-			End;
+    actions
+    {
+        While(And(Compare(Global Variable(dataArrayIndex), <, Count Of(Global Variable(songData))), Global Variable(songPlaying)));
+            If(Compare(Add(Global Variable(chordArrayIndex), Value In Array(Value In Array(Global Variable(songData), Global Variable(
+                dataArrayIndex)), Add(Global Variable(chordArrayIndex), 1))), >, Count Of(Value In Array(Global Variable(songData),
+                Global Variable(dataArrayIndex)))));
+                Modify Global Variable(dataArrayIndex, Add, 1);
+                Set Global Variable(chordArrayIndex, 0);
+            End;
             Modify Global Variable(waitTime, Add, Multiply(Value In Array(Value In Array(Global Variable(songData), Global Variable(
                 dataArrayIndex)), Global Variable(chordArrayIndex)), Divide(100, Global Variable(speedPercent))));
-			While(Compare(Global Variable(waitTime), >=, 0.016));
-				Wait(0.016, Ignore Condition);
-				Modify Global Variable(waitTime, Subtract, 0.016);
-			End;
-			For Global Variable(i, 0, Value In Array(Value In Array(Global Variable(songData), Global Variable(dataArrayIndex)), Add(
-				Global Variable(chordArrayIndex), 1)), 1);
-				Set Player Variable(Value In Array(Global Variable(bots), Global Variable(currentBotIndex)), playNote, True);
-				Set Player Variable(Value In Array(Global Variable(bots), Global Variable(currentBotIndex)), currentPitch, Value In Array(
-					Value In Array(Global Variable(songData), Global Variable(dataArrayIndex)), Add(Add(Global Variable(chordArrayIndex), 2),
-					Global Variable(i))));
-				Set Global Variable(currentBotIndex, Modulo(Add(Global Variable(currentBotIndex), 1), Count Of(Global Variable(bots))));
-			End;
-			Modify Global Variable(chordArrayIndex, Add, Add(Value In Array(Value In Array(Global Variable(songData), Global Variable(
-				dataArrayIndex)), Add(Global Variable(chordArrayIndex), 1)), 2));
-		End;
-		Set Global Variable(songPlaying, 0);
-		Set Global Variable(chordArrayIndex, 1);
-		Set Global Variable(dataArrayIndex, 0);
-		Call Subroutine(destroyBots);
-		Set Global Variable(bots, Empty Array);
-	}
+            While(Compare(Global Variable(waitTime), >=, 0.016));
+                Wait(0.016, Ignore Condition);
+                Modify Global Variable(waitTime, Subtract, 0.016);
+            End;
+            For Global Variable(i, 0, Value In Array(Value In Array(Global Variable(songData), Global Variable(dataArrayIndex)), Add(
+                Global Variable(chordArrayIndex), 1)), 1);
+                Set Player Variable(Value In Array(Global Variable(bots), Global Variable(currentBotIndex)), playNote, True);
+                Set Player Variable(Value In Array(Global Variable(bots), Global Variable(currentBotIndex)), currentPitch, Value In Array(
+                    Value In Array(Global Variable(songData), Global Variable(dataArrayIndex)), Add(Add(Global Variable(chordArrayIndex), 2),
+                    Global Variable(i))));
+                Set Global Variable(currentBotIndex, Modulo(Add(Global Variable(currentBotIndex), 1), Count Of(Global Variable(bots))));
+            End;
+            Modify Global Variable(chordArrayIndex, Add, Add(Value In Array(Value In Array(Global Variable(songData), Global Variable(
+                dataArrayIndex)), Add(Global Variable(chordArrayIndex), 1)), 2));
+        End;
+        Set Global Variable(songPlaying, 0);
+        Set Global Variable(chordArrayIndex, 1);
+        Set Global Variable(dataArrayIndex, 0);
+        Call Subroutine(destroyBots);
+        Set Global Variable(bots, Empty Array);
+    }
 }
 
 rule("Play note")
