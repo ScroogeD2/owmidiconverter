@@ -77,7 +77,7 @@
                     </div>
                 </div>
                 <input class="checkboxInput" type="checkbox" id="includeFullSettingsCheckBox" checked>
-                
+
                 <div class="tooltipWrapper">
                     <div class="tooltip">Make bots invisible
                         <span class="tooltipText">Make the bots playing the song invisible. Their primary fire remains visible.</span>
@@ -240,7 +240,7 @@
 
                 if (document.getElementById("includeFullSettingsCheckBox").checked) {
                     // Add BASE_SETTINGS
-                    customGameSettings += generateIngameSettings(convertedMidi.maxPitches);
+                    customGameSettings += generateIngameSettings(converterSettings["voices"]);
                 } else {
                     // Only add variables used in the converted midi script
                     customGameSettings += CONVERTED_MIDI_VARS;

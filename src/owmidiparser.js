@@ -183,11 +183,8 @@ function convertToArray(chords, settings) {
     let owArrays = [ [settings["voices"]] ];
     let totalArrayElements = 1;
 
-    // Add a slight time interval before the first note 
-    // to let bots read the pitch and aim accurately 
-    let firstNoteOffset = -0.3;
-    // Time of first note + offset
-    let prevTime = chords.keys().next().value + firstNoteOffset;
+    // Time of first note
+    let prevTime = chords.keys().next().value;
     
     let stopTime = 0;
     let currentArray = 0;
@@ -196,7 +193,7 @@ function convertToArray(chords, settings) {
         // In each chord, two array elements are added (time, amount of pitches), 
         // followed by one array element for each pitch in the chord
         let amountOfElementsToAdd = 2 + pitches.length;
-        
+
         if (owArrays[currentArray].length + amountOfElementsToAdd > MAX_SINGLE_ARRAY_ELEMENTS) {
             // currentArray is too long, create a new one
             owArrays.push( [] );
