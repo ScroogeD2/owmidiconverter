@@ -66,7 +66,7 @@ array[i+3] = pitch2
 array[i+4] = pitch3
 array[i+5] = pitch4
 ...
-array[i+N] = pitchN
+array[i+(N+1)] = pitchN
 ```
 
 Time is the time interval between the current chord and the previous chord, and Pitches is the amount of notes in the current chord.
