@@ -129,5 +129,5 @@ rule("Song Data")
 (In no particular order)
 - Mark Benis, for [the best transcriptions of Pokemon Red/Blue music I've seen](https://youtu.be/2WG9V6C1Aew), which allowed me to test the limits of the workshop script
 - LazyLion and Zezombye, for help with optimizing and debugging
-- Zezombye's OverPy, for its comprehensive language docs
+- [Zezombye's OverPy](https://github.com/Zezombye/overpy), for its comprehensive language docs
 - The workshop team at Blizzard, for being awesome in general
