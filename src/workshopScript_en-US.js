@@ -309,6 +309,7 @@ rule("Play piano")
             Modify Global Variable(chordArrayIndex, Add, Add(Value In Array(Value In Array(Global Variable(songData), Global Variable(
                 dataArrayIndex)), Add(Global Variable(chordArrayIndex), 1)), 2));
         End;
+        Wait(0.250, Ignore Condition);
         Set Global Variable(songPlaying, 0);
         Set Global Variable(chordArrayIndex, 1);
         Set Global Variable(dataArrayIndex, 0);
