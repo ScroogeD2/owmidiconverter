@@ -96,7 +96,7 @@ const customGameSettingsKw =
         "pt-BR": "Sim",
         "ru-RU": "Да",
         "zh-CN": "是",
-        "zh-TW": "啟用"
+        "zh-TW": "是"
     },
     "_no": {
         "guid": "0000000058F4",
@@ -110,7 +110,7 @@ const customGameSettingsKw =
         "pt-BR": "Não",
         "ru-RU": "Нет",
         "zh-CN": "否",
-        "zh-TW": "停用"
+        "zh-TW": "否"
     }
 }
 //end-json
