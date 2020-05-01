@@ -11,7 +11,6 @@ const BASE_SETTINGS = `settings
     lobby
     {
         Allow Players Who Are In Queue: Yes
-        Map Rotation: Paused
         Match Voice Chat: Enabled
         Max FFA Players: 12
         Return To Lobby: Never
