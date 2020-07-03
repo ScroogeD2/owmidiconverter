@@ -1,5 +1,5 @@
 # Overwatch MIDI converter
-A tool for converting MIDI files into Overwatch workshop arrays, allowing you to play them ingame [with this gamemode.](https://workshop.elohell.gg/UyppVEAxuslMuna/Overwatch+MIDI+Pianist/)  
+A tool for converting MIDI files into Overwatch workshop arrays, allowing you to play them ingame [with this gamemode.](https://workshop.codes/ZPVWJ)  
 All Overwatch text languages are supported. (See [Known issues](#known-issues) for a note about Japanese and Chinese)  
 
 If you have any feedback, bug reports, or if you just want to say hello, you can contact me on Discord: ScroogeD#5147
