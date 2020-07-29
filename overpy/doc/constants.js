@@ -1540,7 +1540,7 @@ const constantValues =
             "es-ES": "Abortar cuando sea falso",
             "es-MX": "Cancelar cuando es falso",
             "fr-FR": "Interrompre quand faux",
-            "it-IT": "Annulla quando è falso",
+            "it-IT": "Annulla quando è false",
             "ja-JP": "「FALSE」の場合中止",
             "pl-PL": "Przerwij kiedy to fałsz",
             "pt-BR": "Anular Quando For Falso",
