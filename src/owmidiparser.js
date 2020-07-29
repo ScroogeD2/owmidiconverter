@@ -30,15 +30,14 @@ const DEFAULT_SETTINGS = {
 };
 
 // Maximum amount of elements in a single array of the song data rules.
-// Rules have a maximum size of 97kB, and 989 is the largest amount that can be fit into one 
-// without going over the limit.
-const MAX_SINGLE_ARRAY_ELEMENTS = 989;
+// Overwatch arrays are limited to 999 elements per dimension.
+const MAX_OW_ARRAY_SIZE = 999;
 
-// The workshop script has a maximum Total Element Count of 20 000, 
+// The workshop script has a maximum Total Element Count (TEC) of 20 000, 
 // which depends on not just the amount of rules and actions but also their complexity.
-// This value is the total amount of *array* elements allowed in all song data rules.
+// This value is the maximum amount of *array* elements (not related to TEC) allowed in all song data rules.
 // Determined with trial and error, and contains some leeway for adding more actions to the base script later on.
-const MAX_TOTAL_ARRAY_ELEMENTS = 6000;
+const MAX_TOTAL_ARRAY_ELEMENTS = 9000;
 
 // Amount of decimals in the time of each note
 const NOTE_PRECISION = 3;
@@ -64,7 +63,6 @@ function convertMidi(mid, settings={}) {
         int transposedNotes:    Amount of notes transposed to the range of the Overwatch piano
         int skippedNotes:       Amount of notes skipped due to there being too many pitches in a chord
         int totalElements:      Total amount of elements in the song data arrays of the workshop script
-        int totalArrays:        Total amount of song data arrays in the workshop script 
         float duration:         Full duration (seconds) of the MIDI song 
         float stopTime:         The time (seconds) when the script stopped reading the MIDI file, 
                                 either due to finishing the song or due to reaching the maximum allowed amount of data 
@@ -81,9 +79,9 @@ function convertMidi(mid, settings={}) {
 
     let arrayInfo = {};
     if (chordInfo.chords.size != 0) {
-        arrayInfo = convertToArray(chordInfo.chords, settings);
+        arrayInfo = convertToArray(chordInfo.chords);
 
-        rules = writeWorkshopRules(arrayInfo.owArrays);
+        rules = writeWorkshopRules(arrayInfo.owArrays, settings["voices"]);
     }
     
     return { 
@@ -91,7 +89,6 @@ function convertMidi(mid, settings={}) {
         skippedNotes:       chordInfo.skippedNotes, 
         transposedNotes:    chordInfo.transposedNotes,
         totalElements:      arrayInfo.totalArrayElements,
-        totalArrays:        arrayInfo.totalArrays,
         duration:           mid.duration,
         stopTime:           arrayInfo.stopTime,
         warnings:           chordInfo.warnings,
@@ -176,45 +173,45 @@ function readMidiData(mid, settings) {
 }
 
 
-function convertToArray(chords, settings) {
+function convertToArray(chords) {
     // Converts the contents of the chords map 
     // to a format compatible with Overwatch
 
-    let owArrays = [ [settings["voices"]] ];
-    let totalArrayElements = 1;
+    let owArrays = {
+        pitchArrays: [],
+        timeArrays: [],
+        chordArrays: []
+    };
 
-    // Time of first note
+    let totalArrayElements = 0;
+
+    // Time of the first note
     let prevTime = chords.keys().next().value;
     
     let stopTime = 0;
-    let currentArray = 0;
     for (let [currentChordTime, pitches] of chords.entries()) {
 
-        // In each chord, two array elements are added (time, amount of pitches), 
-        // followed by one array element for each pitch in the chord
+        // In each chord, two array elements are added (time, amount of pitches in a chord), 
+        // plus one array element for each pitch in the chord
         let amountOfElementsToAdd = 2 + pitches.length;
 
-        if (owArrays[currentArray].length + amountOfElementsToAdd > MAX_SINGLE_ARRAY_ELEMENTS) {
-            // currentArray is too long, create a new one
-            owArrays.push( [] );
-            currentArray += 1;
-        } else if (totalArrayElements + amountOfElementsToAdd > MAX_TOTAL_ARRAY_ELEMENTS) {
-            // Maximum total amount of elements reached, stop adding them 
+        if (totalArrayElements + amountOfElementsToAdd > MAX_TOTAL_ARRAY_ELEMENTS) {
+            // Maximum total amount of elements reached, stop adding 
             stopTime = currentChordTime;
             break;
         }
         totalArrayElements += amountOfElementsToAdd;
 
         // One chord in the song consists of 
-        // A) time since last chord
-        owArrays[currentArray].push(roundToPlaces(currentChordTime - prevTime, NOTE_PRECISION));
+        // A) time since beginning of the song
+        owArrays["timeArrays"].push(roundToPlaces(currentChordTime, NOTE_PRECISION));
         // B) the amount of pitches in the chord
-        owArrays[currentArray].push(pitches.length);
-        // and C) the pitches in the chord
-        for (let pitch of pitches.sort()) {
-            owArrays[currentArray].push(pitch);
+        owArrays["chordArrays"].push(pitches.length);
+        // and C) the pitches themselves 
+        for (let newPitch of pitches.sort()) {
+            owArrays["pitchArrays"].push( newPitch );
         }
-        
+
         prevTime = currentChordTime;
     }
 
@@ -224,35 +221,46 @@ function convertToArray(chords, settings) {
         stopTime = Array.from( chords.keys() )[chords.size - 1];
     }
 
-    let totalArrays = owArrays.length;
-
-    return { owArrays, totalArrayElements, totalArrays, stopTime };
+    return { owArrays, totalArrayElements, stopTime };
 }
 
 
-function writeWorkshopRules(owArrays) {
+function writeWorkshopRules(owArrays, maxVoices) {
     // Writes workshop rules containing the song data in arrays, 
     // ready to be pasted into Overwatch
     
-    let rules = [];
+    let rules = [`rule(\"Max amount of bots required\"){event{Ongoing-Global;}` +
+    `actions{Global.maxBots = ${maxVoices};Global.maxArraySize = ${MAX_OW_ARRAY_SIZE};}}\n`];
 
-    let arrayNumber = 0;
-    for (let dataArray of owArrays) {
+    // Write all 3 arrays in owArrays to workshop rules
+    for (let [arrayName, songArray] of Object.entries(owArrays)) {
 
-        let actions = `Set Global Variable(tempArray, Empty Array);`;
+        // Index of the current overwatch array being written to
+        let owArrayIndex = 0;
 
-        for (let newElement of dataArray) {
-            actions += `Modify Global Variable(tempArray, ` + 
-                       `Append To Array, ${newElement});`;
+        // Index of the current JS array element being written
+        let songArrayIndex = 0;
+        while (songArrayIndex < songArray.length) {
+
+            let actions = `Global.${arrayName}[${owArrayIndex}] = Array(${songArray[songArrayIndex]}`;
+            songArrayIndex += 1;
+            
+            // Write 998 elements at a time to avoid going over the array size limit 
+            for (let i = 0; i < MAX_OW_ARRAY_SIZE - 1; i++) {
+                actions += `, ${songArray[songArrayIndex]}`;
+                songArrayIndex += 1;
+
+                if (songArrayIndex >= songArray.length) {
+                    break;
+                }
+            }
+
+            actions += `);`
+            let newRule = `rule(\"${arrayName}\"){event{Ongoing-Global;}` +
+                          `actions{${actions}}}\n`;       
+            rules.push(newRule);
+            owArrayIndex += 1;
         }
-        actions += `Set Global Variable At Index(songData, ${arrayNumber},` + 
-                   `Global Variable(tempArray));`
-
-        let newRule = `rule(\"Song Data\"){event{Ongoing-Global;}` +
-                      `actions{${actions}}}`;
-        rules.push(newRule);
-        
-        arrayNumber += 1;
     }
 
     return rules.join("");
@@ -270,6 +278,5 @@ function transposePitch(pitch) {
 }
 
 function roundToPlaces(value, decimalPlaces) {
-    // Todo: validate decimalPlaces?
     return Math.round(value * Math.pow(10, decimalPlaces)) / Math.pow(10, decimalPlaces);
 }
