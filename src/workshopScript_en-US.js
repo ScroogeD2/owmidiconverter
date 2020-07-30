@@ -7,18 +7,19 @@ const BASE_SETTINGS = `settings
     {
         Description: "Overwatch MIDI Pianist mode by ScroogeD. Convert MIDI songs to Overwatch piano songs with this converter on GitHub: github.com/ScroogeD2/owmidiconverter"
     }
-    
+
     lobby
     {
         Allow Players Who Are In Queue: Yes
         Match Voice Chat: Enabled
-        Max FFA Players: 12
+        Max Team 1 Players: 12
+        Max Team 2 Players: 0
         Return To Lobby: Never
     }
 
     modes
     {
-        Deathmatch
+        Skirmish
         {
             enabled maps
             {
@@ -38,8 +39,6 @@ const BASE_SETTINGS = `settings
         General
         {
             Ability Cooldown Time: 0%
-            Damage Dealt: 500%
-            Damage Received: 500%
             No Ammunition Requirement: On
             Ultimate Generation: 250%
         }
@@ -50,30 +49,35 @@ variables
 {
     global:
         0: notePositions
-        1: pianoPosition
+        1: botSpawn
         2: bots
         3: speedPercent
         4: songPlaying
-        5: chordArrayIndex
-        6: defaultFacingDirection
-        7: playerSpawn
-        8: i
-        10: dataArrayIndex
-        15: banTpLocation
-        19: songData
-        20: tempArray
-        31: currentBotIndex
-        32: waitTime
+        5: timeArrayIndex
+        6: playerSpawn
+        7: i
+        8: pitchArrayIndex
+        9: botScalar
+        10: maxArraySize
+        11: banTpLocation
+        12: currentBotIndex
+        13: waitTime
+        14: timeArrays
+        15: pitchArrays
+        16: chordArrays
+        17: maxBots
+        18: numberArray
 
     player:
         1: playNote
-        2: currentPitch
+        2: currentPitchIndex
         3: playerToRemove
+        4: currentKeyPos
 }
 
 subroutines
 {
-    0: destroyBots
+    0: endSong
 }
 
 rule("By ScroogeD#5147 (Discord)")
@@ -93,26 +97,27 @@ rule("Global init")
 
     actions
     {
-        Set Global Variable(tempArray, Empty Array);
-        Set Global Variable(chordArrayIndex, 1);
-        Set Global Variable(bots, Empty Array);
-        Set Global Variable(speedPercent, 100);
-        Set Global Variable(defaultFacingDirection, Vector(162, 60, 0));
         Disable Inspector Recording;
-        Create HUD Text(All Players(All Teams), Null, Null, Custom String("Speed: {0}%", Global Variable(speedPercent), Null, Null), Right,
-            0, White, White, White, Visible To and String, Default Visibility);
+        Global.botScalar = Workshop Setting Real(Custom String("abc"), Custom String("Bot Size Scalar"), 0.100, 0.100, 1);
+        Global.bots = Empty Array;
+        Global.speedPercent = 100;
+        Create HUD Text(All Players(All Teams), Null, Null, Custom String("Speed: {0}%", Global.speedPercent), Right, 0, White, White,
+            White, Visible To and String, Default Visibility);
         Create HUD Text(All Players(All Teams), Null, Null, Custom String(
-            "Host player: Press Interact to start and stop the song, and Crouch+Primary or Crouch+Secondary Fire to change speed", Null,
-            Null, Null), Top, 0, White, White, White, Visible To and String, Default Visibility);
-        Create HUD Text(All Players(All Teams), Null, Custom String("By ScroogeD", Null, Null, Null), Null, Left, 0, White, Yellow, White,
+            "Host player: Press Interact to start and stop the song, and Crouch+Primary or Crouch+Secondary Fire to change speed"), Top, 0,
+            White, White, White, Visible To and String, Default Visibility);
+        Create HUD Text(All Players(All Teams), Null, Custom String("By ScroogeD"), Null, Left, 0, White, Yellow, White,
             Visible To and String, Default Visibility);
-        Create HUD Text(All Players(All Teams), Null, Custom String("Website: github.com/ScroogeD2/owmidiconverter", Null, Null, Null),
-            Null, Left, 1, White, Yellow, White, Visible To and String, Default Visibility);
+        Create HUD Text(All Players(All Teams), Null, Custom String("Website: github.com/ScroogeD2/owmidiconverter"), Null, Left, 1, White,
+            Yellow, White, Visible To and String, Default Visibility);
         Create HUD Text(Filtered Array(All Players(All Teams), Has Status(Current Array Element, Frozen)), Custom String(
-            "The host player has decided to remove you temporarily. Please wait a minute before rejoining.", Null, Null, Null), Null, Null,
-            Top, 1, White, White, White, Visible To and String, Default Visibility);
+            "The host player has decided to remove you temporarily. Please wait a minute before rejoining."), Null, Null, Top, 1, White,
+            White, White, Visible To and String, Default Visibility);
+        Create HUD Text(All Players(All Teams), Custom String("pitch index {0}, time index {1}, wait {2}", Global.pitchArrayIndex,
+            Global.timeArrayIndex, Global.waitTime), Null, Null, Left, 0, White, White, White, Visible To and String, Default Visibility);
     }
 }
+
 
 rule("Player init")
 {
@@ -133,10 +138,8 @@ rule("Player init")
     actions
     {
         Disallow Button(Event Player, Melee);Set Ability 1 Enabled(Event Player, False);Set Ability 2 Enabled(Event Player, False);Set Ultimate Ability Enabled(Event Player, False);If(Compare(Event Player, !=, Host Player));Set Primary Fire Enabled(Event Player, False);Set Secondary Fire Enabled(Event Player, False);End;If(Compare(Hero Of(Event Player), ==, Hero(Wrecking Ball)));Disallow Button(Event Player, Crouch);End;
-        Set Status(Event Player, Null, Phased Out, 9999);
-        Wait(1, Ignore Condition);
-        Teleport(Event Player, Global Variable(playerSpawn));
-        Set Damage Received(Event Player, Absolute Value(9999999.000));
+        Teleport(Event Player, Global.playerSpawn);
+        Set Facing(Event Player, Direction From Angles(161.200, Vertical Facing Angle Of(Event Player)), To World);
     }
 }
 
@@ -156,10 +159,14 @@ rule("Dummy init")
 
     actions
     {
-        Set Status(Event Player, Null, Phased Out, 9999);
-        Set Damage Dealt(Event Player, Absolute Value(9999999.000));
+        Teleport(Event Player, Global.botSpawn);
+        Disable Movement Collision With Environment(Event Player, False);
+        Disable Movement Collision With Players(Event Player);
+        Start Scaling Player(Event Player, Global.botScalar, True);
+        Teleport(Event Player, Vector(-85.417, 14.131, -108));
         Set Invisible(Event Player, All);
-        Teleport(Event Player, Global Variable(pianoPosition));
+        Wait(0.016, Ignore Condition);
+        Set Facing(Event Player, Direction From Angles(161.200, 89), To World);
     }
 }
 
@@ -167,21 +174,18 @@ rule("Primary fire: increase speed")
 {
     event
     {
-        Ongoing - Each Player;
-        All;
-        All;
+        Ongoing - Global;
     }
 
     conditions
     {
-        Event Player == Host Player;
-        Is Button Held(Event Player, Crouch) == True;
-        Is Button Held(Event Player, Primary Fire) == True;
+        Is Button Held(Host Player, Crouch) == True;
+        Is Button Held(Host Player, Primary Fire) == True;
     }
 
     actions
     {
-        Modify Global Variable(speedPercent, Add, 5);
+        Global.speedPercent += 5;
     }
 }
 
@@ -189,22 +193,19 @@ rule("Secondary fire: decrease speed")
 {
     event
     {
-        Ongoing - Each Player;
-        All;
-        All;
+        Ongoing - Global;
     }
 
     conditions
     {
-        Event Player == Host Player;
-        Is Button Held(Event Player, Crouch) == True;
-        Is Button Held(Event Player, Secondary Fire) == True;
-        Global Variable(speedPercent) > 5;
+        Is Button Held(Host Player, Crouch) == True;
+        Is Button Held(Host Player, Secondary Fire) == True;
+        Global.speedPercent > 5;
     }
 
     actions
     {
-        Modify Global Variable(speedPercent, Subtract, 5);
+        Global.speedPercent -= 5;
     }
 }
 
@@ -212,34 +213,29 @@ rule("Interact: create dummy bots, start playing")
 {
     event
     {
-        Ongoing - Each Player;
-        All;
-        All;
+        Ongoing - Global;
     }
 
     conditions
     {
-        Event Player == Host Player;
-        Is Button Held(Event Player, Interact) == True;
-        Global Variable(songPlaying) == 0;
+        Is Button Held(Host Player, Interact) == True;
+        Global.songPlaying == 0;
     }
 
     actions
     {
-        Set Global Variable(songPlaying, 1);
-        Set Global Variable(i, 11);
-        While(And(Compare(Count Of(Global Variable(bots)), <, First Of(First Of(Global Variable(songData)))), Compare(Global Variable(i),
-            >, 0)));
-            If(Not(Entity Exists(Players In Slot(Global Variable(i), All Teams))));
-                Create Dummy Bot(Hero(Symmetra), All Teams, Global Variable(i), Global Variable(pianoPosition), Vector(0, 0, 0));
+        Global.songPlaying = 1;
+        Global.i = 11;
+        While(Count Of(Global.bots) < Global.maxBots && Global.i > 0);
+            If(!Entity Exists(Players In Slot(Global.i, All Teams)));
+                Create Dummy Bot(Hero(Symmetra), Team 1, Global.i, Global.botSpawn, Vector(0, 0, 0));
                 Modify Global Variable(bots, Append To Array, Last Created Entity);
             End;
-            Modify Global Variable(i, Subtract, 1);
+            Global.i -= 1;
             Wait(0.016, Ignore Condition);
         End;
-        Set Global Variable(i, 0);
-        Wait(2.500, Ignore Condition);
-        Set Global Variable(songPlaying, 2);
+        Wait(1, Ignore Condition);
+        Global.songPlaying = 2;
     }
 }
 
@@ -256,21 +252,16 @@ rule("Interact: stop playing")
     {
         Event Player == Host Player;
         Is Button Held(Event Player, Interact) == True;
-        Global Variable(songPlaying) == 2;
+        Global.songPlaying == 2;
     }
 
     actions
     {
-        Set Global Variable(bots, Empty Array);
-        Call Subroutine(destroyBots);
-        Set Global Variable(dataArrayIndex, 0);
-        Wait(1, Ignore Condition);
-        Set Global Variable(songPlaying, 0);
-        Set Global Variable(chordArrayIndex, 1);
+        Call Subroutine(endSong);
     }
 }
 
-rule("Play piano")
+rule("Play loop")
 {
     event
     {
@@ -279,41 +270,58 @@ rule("Play piano")
 
     conditions
     {
-        Global Variable(songPlaying) == 2;
+        Global.songPlaying == 2;
     }
 
     actions
     {
-        While(And(Compare(Global Variable(dataArrayIndex), <, Count Of(Global Variable(songData))), Global Variable(songPlaying)));
-            If(Compare(Add(Global Variable(chordArrayIndex), Value In Array(Value In Array(Global Variable(songData), Global Variable(
-                dataArrayIndex)), Add(Global Variable(chordArrayIndex), 1))), >, Count Of(Value In Array(Global Variable(songData),
-                Global Variable(dataArrayIndex)))));
-                Modify Global Variable(dataArrayIndex, Add, 1);
-                Set Global Variable(chordArrayIndex, 0);
-            End;
-            Modify Global Variable(waitTime, Add, Multiply(Value In Array(Value In Array(Global Variable(songData), Global Variable(
-                dataArrayIndex)), Global Variable(chordArrayIndex)), Divide(100, Global Variable(speedPercent))));
-            While(Compare(Global Variable(waitTime), >=, 0.016));
+        "Because the maximum size of overwatch arrays is 999 per dimension, the song data arrays are split to several indexes of a 2d array. To get the correct index of the required value in these arrays, modulo and division are used instead of a second index:"
+        disabled Continue;
+        "value = songArray[math.floor(index / arraySize)][index % arraySize]"
+        While(Round To Integer(Global.timeArrayIndex / Global.maxArraySize, Down) < Count Of(Global.timeArrays) && Global.songPlaying);
+            "Add the difference between current time and previous time to waitTime. Add nothing if index is 0 (since previous time doesn't exist)"
+            Global.waitTime += Global.timeArrayIndex == 0 ? 0 : (Global.timeArrays[Round To Integer(
+                Global.timeArrayIndex / Global.maxArraySize, Down)
+                ][Global.timeArrayIndex % Global.maxArraySize] - Global.timeArrays[Round To Integer((Global.timeArrayIndex - 1)
+                / Global.maxArraySize, Down)][(Global.timeArrayIndex - 1) % Global.maxArraySize]) * (100 / Global.speedPercent);
+            While(Global.waitTime >= 0.016);
                 Wait(0.016, Ignore Condition);
-                Modify Global Variable(waitTime, Subtract, 0.016);
+                Global.waitTime -= 0.016;
             End;
-            For Global Variable(i, 0, Value In Array(Value In Array(Global Variable(songData), Global Variable(dataArrayIndex)), Add(
-                Global Variable(chordArrayIndex), 1)), 1);
-                Set Player Variable(Value In Array(Global Variable(bots), Global Variable(currentBotIndex)), playNote, True);
-                Set Player Variable(Value In Array(Global Variable(bots), Global Variable(currentBotIndex)), currentPitch, Value In Array(
-                    Value In Array(Global Variable(songData), Global Variable(dataArrayIndex)), Add(Add(Global Variable(chordArrayIndex), 2),
-                    Global Variable(i))));
-                Set Global Variable(currentBotIndex, Modulo(Add(Global Variable(currentBotIndex), 1), Count Of(Global Variable(bots))));
+            "Loop as many times as there are pitches in the current chord, as indicated by the value in chordArrays. Assign the pitches to the bots."
+            For Global Variable(i, 0, Global.chordArrays[Round To Integer(Global.timeArrayIndex / Global.maxArraySize, Down)
+                ][Global.timeArrayIndex % Global.maxArraySize], 1);
+                Global.bots[Global.currentBotIndex].currentPitchIndex = Global.pitchArrayIndex;
+                Global.bots[Global.currentBotIndex].playNote = True;
+                Global.currentBotIndex = (Global.currentBotIndex + 1) % Count Of(Global.bots);
+                Global.pitchArrayIndex += 1;
             End;
-            Modify Global Variable(chordArrayIndex, Add, Add(Value In Array(Value In Array(Global Variable(songData), Global Variable(
-                dataArrayIndex)), Add(Global Variable(chordArrayIndex), 1)), 2));
+            Global.timeArrayIndex += 1;
         End;
         Wait(0.250, Ignore Condition);
-        Set Global Variable(songPlaying, 0);
-        Set Global Variable(chordArrayIndex, 1);
-        Set Global Variable(dataArrayIndex, 0);
-        Call Subroutine(destroyBots);
-        Set Global Variable(bots, Empty Array);
+        Call Subroutine(endSong);
+    }
+}
+
+rule("Stop playing")
+{
+    event
+    {
+        Subroutine;
+        endSong;
+    }
+
+    actions
+    {
+        For Global Variable(i, 0, 12, 1);
+            Destroy Dummy Bot(Team 1, Global.i);
+        End;
+        Global.bots = Empty Array;
+        Wait(0.300, Ignore Condition);
+        Global.songPlaying = 0;
+        Global.timeArrayIndex = 0;
+        Global.pitchArrayIndex = 0;
+        Global.waitTime = 0;
     }
 }
 
@@ -328,19 +336,21 @@ rule("Play note")
 
     conditions
     {
-        Player Variable(Event Player, playNote) == True;
+        Has Spawned(Event Player) == True;
+        Is Dummy Bot(Event Player) == True;
+        Event Player.playNote == True;
     }
 
     actions
     {
-        Set Facing(Event Player, Direction From Angles(Y Component Of(Value In Array(Global Variable(notePositions), Player Variable(
-            Event Player, currentPitch))), Z Component Of(Value In Array(Global Variable(notePositions), Player Variable(Event Player,
-            currentPitch)))), To World);
-        Wait(0.048, Ignore Condition);
+        Event Player.currentKeyPos = Global.notePositions[Global.pitchArrays[Round To Integer(
+            Event Player.currentPitchIndex / Global.maxArraySize, Down)][Event Player.currentPitchIndex % Global.maxArraySize]];
+        Teleport(Event Player, Event Player.currentKeyPos);
+        Wait(0.016, Ignore Condition);
         Start Holding Button(Event Player, Primary Fire);
         Wait(0.032, Ignore Condition);
         Stop Holding Button(Event Player, Primary Fire);
-        Set Player Variable(Event Player, playNote, False);
+        Event Player.playNote = False;
     }
 }
 
@@ -355,43 +365,28 @@ rule("Race condition workaround for very high playing speeds")
 
     conditions
     {
-        Player Variable(Event Player, playNote) == True;
+        Event Player.playNote == True;
     }
 
     actions
     {
         Wait(0.200, Abort When False);
-        Set Player Variable(Event Player, playNote, False);
+        Event Player.playNote = False;
         Loop;
     }
 }
 
-rule("Bans for host player"){event{Ongoing - Each Player;All;All;}conditions{Event Player == Host Player;Is Button Held(Event Player, Reload) == True;Is Button Held(Event Player, Crouch) == True;}actions{Clear Status(Filtered Array(All Players(All Teams), Not(Is Dummy Bot(Current Array Element))), Phased Out);Wait(0.032, Ignore Condition);Set Player Variable(Event Player, playerToRemove, Ray Cast Hit Player(Eye Position(Event Player), Add(Eye Position(Event Player),Multiply(Facing Direction Of(Event Player), 20)), All Players(All Teams), Event Player, True));Teleport(Player Variable(Event Player, playerToRemove), Global Variable(banTpLocation));Set Status(Player Variable(Event Player, playerToRemove), Null, Frozen, 30);Wait(0.032, Ignore Condition);Set Status(All Players(All Teams), Null, Phased Out, 9999);Set Player Variable(Event Player, playerToRemove, Null);}}
-
-rule("Destroy bots (workaround for Destroy All Dummy Bots bug)")
-{
-    event
-    {
-        Subroutine;
-        destroyBots;
-    }
-
-    actions
-    {
-        Set Global Variable(i, 0);
-        For Global Variable(i, 0, 12, 1);
-            Destroy Dummy Bot(All Teams, Global Variable(i));
-        End;
-        Set Global Variable(i, 0);
-    }
-}`;
+rule("Bans for host player"){event{Ongoing - Global;}conditions{Is Button Held(Host Player, Reload) == True;Is Button Held(Host Player, Crouch) == True;}actions{Host Player.playerToRemove = Player Closest To Reticle(Host Player, All Teams);Teleport(Host Player.playerToRemove, Global.banTpLocation);Set Status(Host Player.playerToRemove, Null, Frozen, 30);Host Player.playerToRemove = Null;}}`;
 
 // Used in case the user chooses to not generate the full gamemode settings.
 const CONVERTED_MIDI_VARS = `variables
 {
     global:
-        19: songData
-        20: tempArray
+        13: maxArraySize
+        26: chordArrays
+        36: timeArrays
+        37: pitchArrays
+        39: maxBots
 }`;
 
 
@@ -487,72 +482,25 @@ const PIANO_POSITION_SCRIPTS = {
 
     actions
     {
-        Set Global Variable(notePositions, Empty Array);
-        Modify Global Variable(notePositions, Append To Array, Vector(0, -115.977, 60.090));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, -126.711, 59.238));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, -117.938, 61.381));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, -120.998, 61.183));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, -116.878, 62.765));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, -117.911, 63.995));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, -130.237, 63.616));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, -118.207, 65.341));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, -127.463, 65.006));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, -120.031, 66.605));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, -128.809, 66.171));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, -119.877, 68.313));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, -120.685, 69.576));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, -136.154, 68.549));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, -121.575, 71.104));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, -128.227, 70.983));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, -122.997, 72.427));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, -123.453, 73.932));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, -143.817, 71.917));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, -126.107, 75.558));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, -135.549, 75.157));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, -127.969, 77.141));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, -146.212, 75.361));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, -131.375, 78.624));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, -132.720, 80.250));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, -155.638, 78.849));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, -141.235, 81.398));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, -153.270, 80.645));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, -146.063, 82.963));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, -156.440, 84.012));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, 179.868, 79.503));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, -171.172, 85.419));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, 175.303, 82.820));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, 172.277, 85.891));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, 161.444, 83.177));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, 150.139, 85.457));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, 133.011, 84.309));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, 133.171, 82.408));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, 119.388, 83.771));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, 124.431, 81.541));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, 107.710, 82.386));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, 105.095, 80.563));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, 108.935, 79.118));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, 96.301, 79.557));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, 104.601, 77.498));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, 93.334, 78.168));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, 105.897, 76.174));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, 91.154, 76.882));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, 91.390, 74.943));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, 96.026, 73.301));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, 86.204, 73.812));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, 100.750, 71.642));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, 84.128, 72.191));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, 85.095, 70.527));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, 91.533, 69.060));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, 82.996, 69.181));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, 87.808, 67.813));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, 82.106, 67.736));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, 93.642, 65.978));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, 81.068, 66.588));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, 80.958, 64.984));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, 85.413, 63.776));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, 80.184, 63.594));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, 84.979, 62.628));
-        Modify Global Variable(notePositions, Append To Array, Vector(0, 79.689, 62.249));
+        Global.notePositions = Array(Vector(-85.410, 13.884, -108.012), Vector(-85.364, 13.896, -108.079), Vector(-85.368, 13.886,
+            -108.007), Vector(-85.328, 13.897, -108.078), Vector(-85.325, 13.888, -108.008), Vector(-85.290, 13.887, -107.989), Vector(
+            -85.247, 13.897, -108.050), Vector(-85.256, 13.885, -107.965), Vector(-85.217, 13.895, -108.021), Vector(-85.210, 13.888,
+            -107.968), Vector(-85.173, 13.896, -108.013), Vector(-85.184, 13.883, -107.928), Vector(-85.147, 13.883, -107.916), Vector(
+            -85.095, 13.895, -107.977), Vector(-85.107, 13.883, -107.910), Vector(-85.063, 13.896, -107.973), Vector(-85.066, 13.884,
+            -107.902), Vector(-85.017, 13.886, -107.891), Vector(-84.979, 13.896, -107.954), Vector(-84.987, 13.884, -107.866), Vector(
+            -84.943, 13.896, -107.938), Vector(-84.952, 13.884, -107.854), Vector(-84.908, 13.896, -107.922), Vector(-84.902, 13.886,
+            -107.851), Vector(-84.871, 13.885, -107.836), Vector(-84.826, 13.895, -107.887), Vector(-84.832, 13.885, -107.822), Vector(
+            -84.787, 13.897, -107.894), Vector(-84.795, 13.886, -107.812), Vector(-84.751, 13.888, -107.815), Vector(-84.711, 13.895,
+            -107.857), Vector(-84.720, 13.883, -107.769), Vector(-84.681, 13.895, -107.835), Vector(-84.683, 13.882, -107.759), Vector(
+            -84.643, 13.895, -107.822), Vector(-84.637, 13.887, -107.770), Vector(-84.604, 13.885, -107.745), Vector(-84.563, 13.894,
+            -107.793), Vector(-84.561, 13.888, -107.750), Vector(-84.523, 13.896, -107.791), Vector(-84.524, 13.887, -107.729), Vector(
+            -84.485, 13.884, -107.697), Vector(-84.444, 13.895, -107.759), Vector(-84.445, 13.888, -107.711), Vector(-84.415, 13.894,
+            -107.750), Vector(-84.403, 13.888, -107.694), Vector(-84.373, 13.896, -107.742), Vector(-84.375, 13.885, -107.661), Vector(
+            -84.339, 13.885, -107.649), Vector(-84.292, 13.896, -107.713), Vector(-84.298, 13.886, -107.644), Vector(-84.256, 13.897,
+            -107.715), Vector(-84.262, 13.883, -107.613), Vector(-84.227, 13.883, -107.603), Vector(-84.172, 13.897, -107.684), Vector(
+            -84.183, 13.886, -107.606), Vector(-84.146, 13.895, -107.657), Vector(-84.144, 13.886, -107.592), Vector(-84.103, 13.896,
+            -107.652), Vector(-84.104, 13.885, -107.571), Vector(-84.068, 13.885, -107.560), Vector(-84.021, 13.896, -107.626), Vector(
+            -84.023, 13.886, -107.553), Vector(-83.985, 13.895, -107.598), Vector(-83.987, 13.886, -107.539));
         Set Global Variable(pianoPosition, Vector(-84.693, 13.873, -107.681));
         Set Global Variable(playerSpawn, Vector(-85.624, 14.349, -104.397));
         Set Global Variable(banTpLocation, Vector(-83.340, 13.248, -58.608));
@@ -564,6 +512,6 @@ const PIANO_POSITION_SCRIPTS = {
 const SCRIPTS = {
     restrictAbilities: "Disallow Button(Event Player, Melee);Set Ability 1 Enabled(Event Player, False);Set Ability 2 Enabled(Event Player, False);Set Ultimate Ability Enabled(Event Player, False);If(Compare(Event Player, !=, Host Player));Set Primary Fire Enabled(Event Player, False);Set Secondary Fire Enabled(Event Player, False);End;If(Compare(Hero Of(Event Player), ==, Hero(Wrecking Ball)));Disallow Button(Event Player, Crouch);End;",
     botsInvisible: "Set Invisible(Event Player, All);",
-    restrictSlots: "Max FFA Players: 12",
-    includeBanSystem: 'rule("Bans for host player"){event{Ongoing - Each Player;All;All;}conditions{Event Player == Host Player;Is Button Held(Event Player, Reload) == True;Is Button Held(Event Player, Crouch) == True;}actions{Clear Status(Filtered Array(All Players(All Teams), Not(Is Dummy Bot(Current Array Element))), Phased Out);Wait(0.032, Ignore Condition);Set Player Variable(Event Player, playerToRemove, Ray Cast Hit Player(Eye Position(Event Player), Add(Eye Position(Event Player),Multiply(Facing Direction Of(Event Player), 20)), All Players(All Teams), Event Player, True));Teleport(Player Variable(Event Player, playerToRemove), Global Variable(banTpLocation));Set Status(Player Variable(Event Player, playerToRemove), Null, Frozen, 30);Wait(0.032, Ignore Condition);Set Status(All Players(All Teams), Null, Phased Out, 9999);Set Player Variable(Event Player, playerToRemove, Null);}}'
+    restrictSlots: "Max Team 1 Players: 12",
+    includeBanSystem: 'rule("Bans for host player"){event{Ongoing - Global;}conditions{Is Button Held(Host Player, Reload) == True;Is Button Held(Host Player, Crouch) == True;}actions{Host Player.playerToRemove = Player Closest To Reticle(Host Player, All Teams);Teleport(Host Player.playerToRemove, Global.banTpLocation);Set Status(Host Player.playerToRemove, Null, Frozen, 30);Host Player.playerToRemove = Null;}}'
 }
