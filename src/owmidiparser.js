@@ -249,7 +249,6 @@ function convertToArray(chords, compressionEnabled) {
         // set stoptime to be the time of the last chord/note in the song
         stopTime = Array.from( chords.keys() )[chords.size - 1];
     }
-    console.log(compressedSize);
 
     return { owArrays, stopTime };
 }
@@ -292,7 +291,6 @@ function compressSongArrays(owArrays) {
             compressedArrays[arrayName].push(newElement);
         }
     }
-    console.log(compressedArrays);
     
     return compressedArrays;
 }
