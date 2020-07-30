@@ -98,14 +98,14 @@ rule("Global init")
     actions
     {
         Disable Inspector Recording;
-        Global.botScalar = Workshop Setting Real(Custom String("abc"), Custom String("Bot Size Scalar"), 0.100, 0.100, 1);
+        Global.botScalar = Workshop Setting Real(Custom String("General"), Custom String("Bot Size Scalar"), 0.100, 0.100, 1);
         Global.bots = Empty Array;
         Global.speedPercent = 100;
         Create HUD Text(All Players(All Teams), Null, Null, Custom String("Speed: {0}%", Global.speedPercent), Right, 0, White, White,
             White, Visible To and String, Default Visibility);
         Create HUD Text(All Players(All Teams), Null, Null, Custom String(
-            "Host player: Press Interact to start and stop the song, and Crouch+Primary or Crouch+Secondary Fire to change speed"), Top, 0,
-            White, White, White, Visible To and String, Default Visibility);
+            "Host player: Press Interact to start and stop the song, \nand Crouch+Primary or Crouch+Secondary Fire to change speed"), Top,
+            0, White, White, White, Visible To and String, Default Visibility);
         Create HUD Text(All Players(All Teams), Null, Custom String("By ScroogeD"), Null, Left, 0, White, Yellow, White,
             Visible To and String, Default Visibility);
         Create HUD Text(All Players(All Teams), Null, Custom String("Website: github.com/ScroogeD2/owmidiconverter"), Null, Left, 1, White,
@@ -113,8 +113,6 @@ rule("Global init")
         Create HUD Text(Filtered Array(All Players(All Teams), Has Status(Current Array Element, Frozen)), Custom String(
             "The host player has decided to remove you temporarily. Please wait a minute before rejoining."), Null, Null, Top, 1, White,
             White, White, Visible To and String, Default Visibility);
-        Create HUD Text(All Players(All Teams), Custom String("pitch index {0}, time index {1}, wait {2}", Global.pitchArrayIndex,
-            Global.timeArrayIndex, Global.waitTime), Null, Null, Left, 0, White, White, White, Visible To and String, Default Visibility);
     }
 }
 
@@ -280,10 +278,8 @@ rule("Play loop")
         "value = songArray[math.floor(index / arraySize)][index % arraySize]"
         While(Round To Integer(Global.timeArrayIndex / Global.maxArraySize, Down) < Count Of(Global.timeArrays) && Global.songPlaying);
             "Add the difference between current time and previous time to waitTime. Add nothing if index is 0 (since previous time doesn't exist)"
-            Global.waitTime += Global.timeArrayIndex == 0 ? 0 : (Global.timeArrays[Round To Integer(
-                Global.timeArrayIndex / Global.maxArraySize, Down)
-                ][Global.timeArrayIndex % Global.maxArraySize] - Global.timeArrays[Round To Integer((Global.timeArrayIndex - 1)
-                / Global.maxArraySize, Down)][(Global.timeArrayIndex - 1) % Global.maxArraySize]) * (100 / Global.speedPercent);
+            Global.waitTime += (Global.timeArrays[Round To Integer(Global.timeArrayIndex / Global.maxArraySize, Down)
+                ][Global.timeArrayIndex % Global.maxArraySize]) / (1000) * (100 / Global.speedPercent);
             While(Global.waitTime >= 0.016);
                 Wait(0.016, Ignore Condition);
                 Global.waitTime -= 0.016;
@@ -468,7 +464,7 @@ const PIANO_POSITION_SCRIPTS = {
         Modify Global Variable(notePositions, Append To Array, Vector(0, -171.870, 66.627));
         Modify Global Variable(notePositions, Append To Array, Vector(0, -167.712, 65.599));
         Modify Global Variable(notePositions, Append To Array, Vector(0, -172.386, 65.654));
-        Set Global Variable(pianoPosition, Vector(-41.016, 13.158, 33.314));
+        Set Global Variable(botSpawn, Vector(-41.016, 13.158, 33.314));
         Set Global Variable(playerSpawn, Vector(-34.5, 12, 32.3));
         Set Global Variable(banTpLocation, Vector(-10.008, 15.802, -40.435));
     }
@@ -501,7 +497,7 @@ const PIANO_POSITION_SCRIPTS = {
             -84.183, 13.886, -107.606), Vector(-84.146, 13.895, -107.657), Vector(-84.144, 13.886, -107.592), Vector(-84.103, 13.896,
             -107.652), Vector(-84.104, 13.885, -107.571), Vector(-84.068, 13.885, -107.560), Vector(-84.021, 13.896, -107.626), Vector(
             -84.023, 13.886, -107.553), Vector(-83.985, 13.895, -107.598), Vector(-83.987, 13.886, -107.539));
-        Set Global Variable(pianoPosition, Vector(-84.693, 13.873, -107.681));
+        Set Global Variable(botSpawn, Vector(-84.693, 13.873, -107.681));
         Set Global Variable(playerSpawn, Vector(-85.624, 14.349, -104.397));
         Set Global Variable(banTpLocation, Vector(-83.340, 13.248, -58.608));
     }
