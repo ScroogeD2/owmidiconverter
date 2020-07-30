@@ -139,30 +139,107 @@
     <!-- Import OverPy for language translations -->
     <script src="overpy/utils/other.js"></script>
 
-    <script src="overpy/doc/actions.js"></script>
-    <script src="overpy/doc/values.js"></script>
-    <script src="overpy/doc/maps.js"></script>
-    <script src="overpy/doc/heroes.js"></script>
-    <script src="overpy/doc/gamemodes.js"></script>
-    <script src="overpy/doc/constants.js"></script>
-    <script src="overpy/doc/keywords.js"></script>
-    <script src="overpy/doc/customGameSettings.js"></script>
-    <script src="overpy/doc/opy/functions.js"></script>
-    <script src="overpy/doc/opy/memberFunctions.js"></script>
-    <script src="overpy/doc/opy/preprocessing.js"></script>
-    
-    <script src="overpy/utils/compilation.js"></script>
-    <script src="overpy/utils/decompilation.js"></script>
-    <script src="overpy/utils/logging.js"></script>
-    <script src="overpy/utils/optimization.js"></script>
-    <script src="overpy/utils/translation.js"></script>
-    <script src="overpy/utils/varNames.js"></script>
+    <script src="overpy/data/opy/constants.js"></script>
+    <script src="overpy/data/opy/internalFunctions.js"></script>
+    <script src="overpy/data/opy/functions.js"></script>
+    <script src="overpy/data/opy/keywords.js"></script>
+    <script src="overpy/data/opy/memberFunctions.js"></script>
+    <script src="overpy/data/opy/preprocessing.js"></script>
+    <script src="overpy/data/actions.js"></script>
+    <script src="overpy/data/values.js"></script>
+    <script src="overpy/data/maps.js"></script>
+    <script src="overpy/data/heroes.js"></script>
+    <script src="overpy/data/gamemodes.js"></script>
+    <script src="overpy/data/constants.js"></script>
+    <script src="overpy/data/other.js"></script>
+    <script src="overpy/data/customGameSettings.js"></script>
+    <script src="overpy/data/opy/annotations.js"></script>
     
     <script src="overpy/globalVars.js"></script>
-    <script src="overpy/decompiler.js"></script>
-    <script src="overpy/tokenizer.js"></script>
-    <script src="overpy/compiler.js"></script>
-    <script src="overpy/doc/stringKw.js"></script>
+    
+    <script src="overpy/utils/ast.js"></script>
+    <script src="overpy/utils/types.js"></script>
+    <script src="overpy/utils/compilation.js"></script>
+    <script src="overpy/utils/decompilation.js"></script>
+    <script src="overpy/utils/file.js"></script>
+    <script src="overpy/utils/logging.js"></script>
+    <script src="overpy/utils/optimization.js"></script>
+    <script src="overpy/utils/strings.js"></script>
+    <script src="overpy/utils/translation.js"></script>
+    <script src="overpy/utils/varNames.js"></script>
+    <script src="overpy/utils/tokens.js"></script>
+    
+    <script src="overpy/decompiler/decompileTest.js"></script>
+    <script src="overpy/decompiler/workshopToAst.js"></script>
+    <script src="overpy/decompiler/astToOpy.js"></script>
+    <script src="overpy/decompiler/decompiler.js"></script>
+    
+    <script src="overpy/compiler/obfuscation.js"></script>
+    <script src="overpy/compiler/functions/__add__.js"></script>
+    <script src="overpy/compiler/functions/__and__.js"></script>
+    <script src="overpy/compiler/functions/__append__.js"></script>
+    <script src="overpy/compiler/functions/__array__.js"></script>
+    <script src="overpy/compiler/functions/__arraySlice__.js"></script>
+    <script src="overpy/compiler/functions/__assignTo__.js"></script>
+    <script src="overpy/compiler/functions/__button__.js"></script>
+    <script src="overpy/compiler/functions/__del__.js"></script>
+    <script src="overpy/compiler/functions/__dict__.js"></script>
+    <script src="overpy/compiler/functions/__distanceTo__.js"></script>
+    <script src="overpy/compiler/functions/__divide__.js"></script>
+    <script src="overpy/compiler/functions/__doWhile__.js"></script>
+    <script src="overpy/compiler/functions/__elif__.js"></script>
+    <script src="overpy/compiler/functions/__else__.js"></script>
+    <script src="overpy/compiler/functions/__equals__.js"></script>
+    <script src="overpy/compiler/functions/__for__.js"></script>
+    <script src="overpy/compiler/functions/__format__.js"></script>
+    <script src="overpy/compiler/functions/__filteredArray__.js"></script>
+    <script src="overpy/compiler/functions/__gamemode__.js"></script>
+    <script src="overpy/compiler/functions/__greaterThan__.js"></script>
+    <script src="overpy/compiler/functions/__greaterThanOrEquals__.js"></script>
+    <script src="overpy/compiler/functions/__hero__.js"></script>
+    <script src="overpy/compiler/functions/__if__.js"></script>
+    <script src="overpy/compiler/functions/__ifThenElse__.js"></script>
+    <script src="overpy/compiler/functions/__indexOfArrayValue__.js"></script>
+    <script src="overpy/compiler/functions/__inequals__.js"></script>
+    <script src="overpy/compiler/functions/__lastOf__.js"></script>
+    <script src="overpy/compiler/functions/__lessThan__.js"></script>
+    <script src="overpy/compiler/functions/__lessThanOrEquals__.js"></script>
+    <script src="overpy/compiler/functions/__map__.js"></script>
+    <script src="overpy/compiler/functions/__mappedArray__.js"></script>
+    <script src="overpy/compiler/functions/__modulo__.js"></script>
+    <script src="overpy/compiler/functions/__multiply__.js"></script>
+    <script src="overpy/compiler/functions/__negate__.js"></script>
+    <script src="overpy/compiler/functions/__not__.js"></script>
+    <script src="overpy/compiler/functions/__or__.js"></script>
+    <script src="overpy/compiler/functions/__raiseToPower__.js"></script>
+    <script src="overpy/compiler/functions/__remove__.js"></script>
+    <script src="overpy/compiler/functions/__rule__.js"></script>
+    <script src="overpy/compiler/functions/__skip__.js"></script>
+    <script src="overpy/compiler/functions/__subtract__.js"></script>
+    <script src="overpy/compiler/functions/__switch__.js"></script>
+    <script src="overpy/compiler/functions/__valueInArray__.js"></script>
+    <script src="overpy/compiler/functions/__while__.js"></script>
+    <script src="overpy/compiler/functions/__xComponentOf__.js"></script>
+    <script src="overpy/compiler/functions/__yComponentOf__.js"></script>
+    <script src="overpy/compiler/functions/__zComponentOf__.js"></script>
+    <script src="overpy/compiler/functions/all.js"></script>
+    <script src="overpy/compiler/functions/any.js"></script>
+    <script src="overpy/compiler/functions/break.js"></script>
+    <script src="overpy/compiler/functions/continue.js"></script>
+    <script src="overpy/compiler/functions/createBeam.js"></script>
+    <script src="overpy/compiler/functions/disableInspector.js"></script>
+    <script src="overpy/compiler/functions/enableInspector.js"></script>
+    <script src="overpy/compiler/functions/print.js"></script>
+    <script src="overpy/compiler/functions/sorted.js"></script>
+    <script src="overpy/compiler/functions/vect.js"></script>
+    
+    <script src="overpy/compiler/tokenizer.js"></script>
+    <script src="overpy/compiler/astParser.js"></script>
+    <script src="overpy/compiler/astToWorkshop.js"></script>
+    <script src="overpy/compiler/parser.js"></script>
+    <script src="overpy/compiler/compiler.js"></script>
+    <script src="overpy/data/localizedStrings.js"></script>
+    <!-- End of OverPy imports -->
     
     <!-- todo: only import convertMidi and CONVERTER_SETTINGS_INFO instead of the whole file -->
     <script type="text/javascript" src="src/owmidiparser.js"></script>
@@ -325,7 +402,7 @@
 
             if (userSettings.restrictSlots) {
                 customGameSettings = customGameSettings.replace(SCRIPTS["restrictSlots"], 
-                                                                `Max FFA Players: ${MAX_PLAYERS - maxBots}`)
+                                                                `Max Team 1 Players: ${MAX_PLAYERS - maxBots}`)
             }
             
             customGameSettings += PIANO_POSITION_SCRIPTS[userSettings.selectedPiano];
@@ -346,8 +423,7 @@
             // then compiling back to workshop script in the selected language
 
             try {
-                // Add disableUnusedVars to avoid clutter
-                let overpyScript = "#!disableUnusedVars" + decompileAllRules(script);
+                let overpyScript = decompileAllRules(script);
 
                 return compile(overpyScript, language).result;
             }
