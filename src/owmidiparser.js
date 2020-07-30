@@ -14,7 +14,7 @@ const PIANO_RANGE = Object.freeze({
 });
 const OCTAVE = 12;
 
-/* Settings for the converter.
+/* Settings for the parsing the midi data.
     - startTime: time (seconds) in the midi file when this script begins reading the data
     - voices: amount of bots required to play the resulting script, maximum amount of pitches allowed in any chord.
               At least 6 recommended to make sure all songs play back reasonably well
@@ -42,6 +42,10 @@ const MAX_TOTAL_ARRAY_ELEMENTS = 9000;
 // Amount of decimals in the time of each note
 const NOTE_PRECISION = 3;
 
+
+// Maximum time interval (milliseconds) between two chords
+const MAX_TIME_INTERVAL = 9999;
+
 const CONVERTER_WARNINGS = {
     TYPE_0_FILE: "WARNING: The processed file is a type 0 file and may have been converted incorrectly.\n"
 };
@@ -50,8 +54,18 @@ const CONVERTER_ERRORS = {
     NO_NOTES_FOUND: `Error: no notes found in MIDI file in the given time range.\n`
 };
 
+// Lengths (in digits) of song data elements when compression is used.
+const SONG_DATA_ELEMENT_LENGTHS = {
+    pitchArrays: 2,
+    timeArrays: 4,
+    chordArrays: 1
+};
 
-function convertMidi(mid, settings={}) {
+// Maximum length (in digits) of a compressed array element. See the compressSongArrays function for more info. 
+const COMPRESSED_ELEMENT_LENGTH = 7;
+
+
+function convertMidi(mid, settings={}, compressionEnabled=true) {
     /*
     param mid:  a Midi object created by Tonejs/Midi
     param settings: a JS object containing user parameters for 
@@ -62,7 +76,6 @@ function convertMidi(mid, settings={}) {
                                 or an empty string if an error occurred
         int transposedNotes:    Amount of notes transposed to the range of the Overwatch piano
         int skippedNotes:       Amount of notes skipped due to there being too many pitches in a chord
-        int totalElements:      Total amount of elements in the song data arrays of the workshop script
         float duration:         Full duration (seconds) of the MIDI song 
         float stopTime:         The time (seconds) when the script stopped reading the MIDI file, 
                                 either due to finishing the song or due to reaching the maximum allowed amount of data 
@@ -74,25 +87,28 @@ function convertMidi(mid, settings={}) {
         settings = DEFAULT_SETTINGS;
     }
 
-    let chordInfo = readMidiData(mid, settings);
+    let midiInfo = readMidiData(mid, settings);
     let rules = "";
 
     let arrayInfo = {};
-    if (chordInfo.chords.size != 0) {
-        arrayInfo = convertToArray(chordInfo.chords);
+    if (midiInfo.chords.size != 0) {
+        arrayInfo = convertToArray(midiInfo.chords, compressionEnabled);
+
+        if (compressionEnabled) {
+            arrayInfo.owArrays = compressSongArrays(arrayInfo.owArrays);
+        }
 
         rules = writeWorkshopRules(arrayInfo.owArrays, settings["voices"]);
     }
     
     return { 
         rules:              rules, 
-        skippedNotes:       chordInfo.skippedNotes, 
-        transposedNotes:    chordInfo.transposedNotes,
-        totalElements:      arrayInfo.totalArrayElements,
+        skippedNotes:       midiInfo.skippedNotes, 
+        transposedNotes:    midiInfo.transposedNotes,
         duration:           mid.duration,
         stopTime:           arrayInfo.stopTime,
-        warnings:           chordInfo.warnings,
-        errors:             chordInfo.errors
+        warnings:           midiInfo.warnings,
+        errors:             midiInfo.errors
     };
 }
 
@@ -173,7 +189,7 @@ function readMidiData(mid, settings) {
 }
 
 
-function convertToArray(chords) {
+function convertToArray(chords, compressionEnabled) {
     // Converts the contents of the chords map 
     // to a format compatible with Overwatch
 
@@ -183,7 +199,13 @@ function convertToArray(chords) {
         chordArrays: []
     };
 
-    let totalArrayElements = 0;
+    let pitchArrayElements = 0;
+    let timeArrayElements = 0;
+    let chordArrayElements = 0;
+
+    // Size measured by amount of array elements used
+    let uncompressedSize = 0;
+    let compressedSize = 0;
 
     // Time of the first note
     let prevTime = chords.keys().next().value;
@@ -191,20 +213,27 @@ function convertToArray(chords) {
     let stopTime = 0;
     for (let [currentChordTime, pitches] of chords.entries()) {
 
-        // In each chord, two array elements are added (time, amount of pitches in a chord), 
-        // plus one array element for each pitch in the chord
-        let amountOfElementsToAdd = 2 + pitches.length;
+        pitchArrayElements += pitches.length;
+        timeArrayElements += 1;
+        chordArrayElements += 1;
 
-        if (totalArrayElements + amountOfElementsToAdd > MAX_TOTAL_ARRAY_ELEMENTS) {
-            // Maximum total amount of elements reached, stop adding 
+        uncompressedSize = pitchArrayElements + timeArrayElements + chordArrayElements;
+        compressedSize = Math.ceil(
+                                   (pitchArrayElements * SONG_DATA_ELEMENT_LENGTHS["pitchArrays"]
+                                    + timeArrayElements * SONG_DATA_ELEMENT_LENGTHS["timeArrays"]
+                                    + chordArrayElements * SONG_DATA_ELEMENT_LENGTHS["chordArrays"]
+                                    )
+                                   / COMPRESSED_ELEMENT_LENGTH);
+
+        if ( (compressionEnabled ? compressedSize : uncompressedSize) > MAX_TOTAL_ARRAY_ELEMENTS) {
+            // Maximum amount of elements reached, stop adding 
             stopTime = currentChordTime;
             break;
         }
-        totalArrayElements += amountOfElementsToAdd;
 
         // One chord in the song consists of 
-        // A) time since beginning of the song
-        owArrays["timeArrays"].push(roundToPlaces(currentChordTime, NOTE_PRECISION));
+        // A) the time interval (milliseconds) between current chord and previous chord
+        owArrays["timeArrays"].push(Math.min(roundToPlaces((currentChordTime - prevTime) * 1000, NOTE_PRECISION), MAX_TIME_INTERVAL));
         // B) the amount of pitches in the chord
         owArrays["chordArrays"].push(pitches.length);
         // and C) the pitches themselves 
@@ -220,13 +249,57 @@ function convertToArray(chords) {
         // set stoptime to be the time of the last chord/note in the song
         stopTime = Array.from( chords.keys() )[chords.size - 1];
     }
+    console.log(compressedSize);
 
-    return { owArrays, totalArrayElements, stopTime };
+    return { owArrays, stopTime };
+}
+
+
+function compressSongArrays(owArrays) {
+    /*
+    Compresses the song arrays by clumping several elements into one integer. For example:
+    (maxElementLength = 3)
+    Data:               Array(12, 0, 312, 2, 56, 23, 23, 4, 153, 123, 110 ...)
+    Compressed data:    Array(0120003, 1200205, 6023023, 0041531, 23110...)
+
+    Total Element Count (TEC) is the limit to how much data can be pasted into the workshop prior to starting the custom game.
+    The amount of data generated during runtime (by e.g. decompression) is far less limited.
+    
+    When pasting integers into the workshop, the increase in TEC is only affected by 
+    the amount of integers, not their individual sizes. String arrays could be used for far better efficiency instead of integer arrays, 
+    but there is no straightforward way to read them with workshop due to lack of simple string methods. 
+    Up to 7 digits can be used per integer while still maintaining accuracy.
+
+    Things to look into later: delta encoding/compression
+    */
+
+    let compressedArrays = {
+        pitchArrays: [],
+        timeArrays: [],
+        chordArrays: []
+    };
+
+    for (let [arrayName, songArray] of Object.entries(owArrays)) {
+        // Prepend with zeroes if an element is not long enough
+        songArray = songArray.map(x => x.toString().padStart(SONG_DATA_ELEMENT_LENGTHS[arrayName], "0"));
+
+        let stringBuffer = songArray.join("");
+
+        // Write to compressedArray 7 numbers at a time
+        for (let i = 0; i < stringBuffer.length; i += COMPRESSED_ELEMENT_LENGTH) {
+
+            let newElement = stringBuffer.slice(i, i + COMPRESSED_ELEMENT_LENGTH);
+            compressedArrays[arrayName].push(newElement);
+        }
+    }
+    console.log(compressedArrays);
+    
+    return compressedArrays;
 }
 
 
 function writeWorkshopRules(owArrays, maxVoices) {
-    // Writes workshop rules containing the song data in arrays, 
+    // Creates workshop rules containing the song data in arrays, 
     // ready to be pasted into Overwatch
     
     let rules = [`rule(\"Max amount of bots required\"){event{Ongoing-Global;}` +
@@ -239,25 +312,24 @@ function writeWorkshopRules(owArrays, maxVoices) {
         let owArrayIndex = 0;
 
         // Index of the current JS array element being written
-        let songArrayIndex = 0;
-        while (songArrayIndex < songArray.length) {
+        let index = 0;
+        while (index < songArray.length) {
 
-            let actions = `Global.${arrayName}[${owArrayIndex}] = Array(${songArray[songArrayIndex]}`;
-            songArrayIndex += 1;
+            let actions = `Global.${arrayName}[${owArrayIndex}] = Array(${songArray[index]}`;
+            index += 1;
             
             // Write 998 elements at a time to avoid going over the array size limit 
-            for (let i = 0; i < MAX_OW_ARRAY_SIZE - 1; i++) {
-                actions += `, ${songArray[songArrayIndex]}`;
-                songArrayIndex += 1;
+            for (let j = 0; j < MAX_OW_ARRAY_SIZE - 1; j++) {
+                actions += `, ${songArray[index]}`;
+                index += 1;
 
-                if (songArrayIndex >= songArray.length) {
+                if (index >= songArray.length) {
                     break;
                 }
             }
 
-            actions += `);`
             let newRule = `rule(\"${arrayName}\"){event{Ongoing-Global;}` +
-                          `actions{${actions}}}\n`;       
+                          `actions{${actions});}}\n`;       
             rules.push(newRule);
             owArrayIndex += 1;
         }
