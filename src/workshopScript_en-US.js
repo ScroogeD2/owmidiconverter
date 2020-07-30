@@ -67,6 +67,16 @@ variables
         16: chordArrays
         17: maxBots
         18: numberArray
+        19: decompressedValue
+        20: tempArray
+        21: decompressedArray
+        22: compressedElementSize
+        23: decompressedElementSize
+        24: compressedArray
+        25: I
+        26: J
+        27: K
+        28: L
 
     player:
         1: playNote
@@ -78,6 +88,7 @@ variables
 subroutines
 {
     0: endSong
+    1: decompressArray
 }
 
 rule("By ScroogeD#5147 (Discord)")
@@ -277,7 +288,7 @@ rule("Play loop")
         disabled Continue;
         "value = songArray[math.floor(index / arraySize)][index % arraySize]"
         While(Round To Integer(Global.timeArrayIndex / Global.maxArraySize, Down) < Count Of(Global.timeArrays) && Global.songPlaying);
-            "Add the difference between current time and previous time to waitTime. Add nothing if index is 0 (since previous time doesn't exist)"
+            "Get the time interval (milliseconds) between chords from timeArrays, multiply by 1000 to get seconds, modify based on speed"
             Global.waitTime += (Global.timeArrays[Round To Integer(Global.timeArrayIndex / Global.maxArraySize, Down)
                 ][Global.timeArrayIndex % Global.maxArraySize]) / (1000) * (100 / Global.speedPercent);
             While(Global.waitTime >= 0.016);
@@ -372,7 +383,102 @@ rule("Race condition workaround for very high playing speeds")
     }
 }
 
-rule("Bans for host player"){event{Ongoing - Global;}conditions{Is Button Held(Host Player, Reload) == True;Is Button Held(Host Player, Crouch) == True;}actions{Host Player.playerToRemove = Player Closest To Reticle(Host Player, All Teams);Teleport(Host Player.playerToRemove, Global.banTpLocation);Set Status(Host Player.playerToRemove, Null, Frozen, 30);Host Player.playerToRemove = Null;}}`;
+rule("Bans for host player"){event{Ongoing - Global;}conditions{Is Button Held(Host Player, Reload) == True;Is Button Held(Host Player, Crouch) == True;}actions{Host Player.playerToRemove = Player Closest To Reticle(Host Player, All Teams);Teleport(Host Player.playerToRemove, Global.banTpLocation);Set Status(Host Player.playerToRemove, Null, Frozen, 30);Host Player.playerToRemove = Null;}}
+
+rule("Decompress all arrays")
+{
+    event
+    {
+        Ongoing - Global;
+    }
+
+    actions
+    {
+        Wait(0.250, Ignore Condition);
+        Global.compressedArray = Empty Array;
+        "DECOMPRESS PITCH ARRAYS"
+        For Global Variable(I, 0, Count Of(Global.pitchArrays), 1);
+            Global.compressedArray[Global.I] = Global.pitchArrays[Global.I];
+        End;
+        Global.decompressedElementSize = 2;
+        Call Subroutine(decompressArray);
+        For Global Variable(I, 0, Count Of(Global.decompressedArray), 1);
+            Global.pitchArrays[Global.I] = Global.decompressedArray[Global.I];
+        End;
+        Global.compressedArray = Empty Array;
+        "DECOMPRESS TIME ARRAYS"
+        For Global Variable(I, 0, Count Of(Global.timeArrays), 1);
+            Global.compressedArray[Global.I] = Global.timeArrays[Global.I];
+        End;
+        Global.decompressedElementSize = 4;
+        Call Subroutine(decompressArray);
+        For Global Variable(I, 0, Count Of(Global.decompressedArray), 1);
+            Global.timeArrays[Global.I] = Global.decompressedArray[Global.I];
+        End;
+        Global.compressedArray = Empty Array;
+        "DECOMPRESS CHORD ARRAYS"
+        For Global Variable(I, 0, Count Of(Global.chordArrays), 1);
+            Global.compressedArray[Global.I] = Global.chordArrays[Global.I];
+        End;
+        Global.decompressedElementSize = 1;
+        Call Subroutine(decompressArray);
+        For Global Variable(I, 0, Count Of(Global.decompressedArray), 1);
+            Global.chordArrays[Global.I] = Global.decompressedArray[Global.I];
+        End;
+        Global.decompressedArray = Empty Array;
+        Global.compressedArray = Empty Array;
+    }
+}
+
+rule("Decompress array")
+{
+    event
+    {
+        Subroutine;
+        decompressArray;
+    }
+
+    actions
+    {
+        "Target array for the decompressed data"
+        Global.decompressedArray = Empty Array;
+        "Current decompressedArray index being written to (max of 999 elements per index)"
+        Global.L = 0;
+        "Array for saving individual digits of the elements being decompressed"
+        Global.numberArray = Empty Array;
+        Global.tempArray = Empty Array;
+        For Global Variable(I, 0, Count Of(Global.compressedArray), 1);
+            For Global Variable(J, 0, Count Of(Global.compressedArray[Global.I]), 1);
+                "Read the compressed element from left to right, append individual digits to numberArray"
+                For Global Variable(K, 0, Global.compressedElementSize, 1);
+                    Modify Global Variable(numberArray, Append To Array, Round To Integer(Global.compressedArray[Global.I][Global.J] / 10 ^ (
+                        Global.compressedElementSize - 1 - Global.K), Down) % 10);
+                End;
+                While(Count Of(Global.numberArray) >= Global.decompressedElementSize);
+                    Global.decompressedValue = 0;
+                    "Construct the original numbers by reading numberArray x elements at a time"
+                    For Global Variable(K, 0, Global.decompressedElementSize, 1);
+                        Global.decompressedValue += First Of(Global.numberArray) * 10 ^ (Global.decompressedElementSize - 1 - Global.K);
+                        Modify Global Variable(numberArray, Remove From Array By Index, 0);
+                    End;
+                    Modify Global Variable(tempArray, Append To Array, Global.decompressedValue);
+                    If(Count Of(Global.tempArray) >= Global.maxArraySize);
+                        Global.decompressedArray[Global.L] = Global.tempArray;
+                        Global.tempArray = Empty Array;
+                        Global.L += 1;
+                    End;
+                End;
+                "Wait a frame every 25th element to avoid high server load"
+                If(Global.J % 25 == 0);
+                    Wait(0.016, Ignore Condition);
+                End;
+            End;
+        End;
+        "Save any remaining data"
+        Global.decompressedArray[Global.L] = Global.tempArray;
+        Global.tempArray = Empty Array;
+    }
+}`;
 
 // Used in case the user chooses to not generate the full gamemode settings.
 const CONVERTED_MIDI_VARS = `variables

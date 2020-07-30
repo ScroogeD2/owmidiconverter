@@ -65,7 +65,7 @@ const SONG_DATA_ELEMENT_LENGTHS = {
 const COMPRESSED_ELEMENT_LENGTH = 7;
 
 
-function convertMidi(mid, settings={}, compressionEnabled=false) {
+function convertMidi(mid, settings={}, compressionEnabled=true) {
     /*
     param mid:  a Midi object created by Tonejs/Midi
     param settings: a JS object containing user parameters for 
@@ -303,7 +303,8 @@ function writeWorkshopRules(owArrays, maxVoices) {
     // ready to be pasted into Overwatch
     
     let rules = [`rule(\"Max amount of bots required\"){event{Ongoing-Global;}` +
-    `actions{Global.maxBots = ${maxVoices};Global.maxArraySize = ${MAX_OW_ARRAY_SIZE};}}\n`];
+    `actions{Global.maxBots = ${maxVoices};Global.maxArraySize = ${MAX_OW_ARRAY_SIZE};
+    Global.compressedElementSize = ${COMPRESSED_ELEMENT_LENGTH};}}\n`];
 
     // Write all 3 arrays in owArrays to workshop rules
     for (let [arrayName, songArray] of Object.entries(owArrays)) {
