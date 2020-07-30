@@ -17,6 +17,7 @@
 
 "use strict";
 
+
 //camelCase -> UPPER_CASE
 function camelCaseToUpperCase(str) {
 	return str.split(/(?=[A-Z])/).join('_').toUpperCase();
@@ -48,7 +49,7 @@ function getUtf8Length(s){
 }
 
 function isNumber(x) {
-	if (x.trim() === "") {
+	if ((""+x).trim() === "" || x === null) {
 		return false;
 	}
 	return !isNaN(x);
@@ -98,4 +99,9 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+//Used for automatically generated names.
+function getUniqueNumber() {
+	uniqueNumber++;
+	return uniqueNumber;
+}
 

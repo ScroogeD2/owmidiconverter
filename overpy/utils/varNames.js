@@ -34,7 +34,7 @@ function translateSubroutineToPy(content) {
 		return content;
 	} else if (defaultSubroutineNames.includes(content)) {
 		//Add the subroutine as it doesn't already exist (else it would've been caught by the first if)
-		addVariable(content, defaultSubroutineNames.indexOf(content));
+		addSubroutine(content, defaultSubroutineNames.indexOf(content));
 		return content;
 	} else {
 		error("Unknown subroutine '"+content+"'");
@@ -44,7 +44,7 @@ function translateSubroutineToPy(content) {
 function translateSubroutineToWs(content) {
 	for (var i = 0; i < subroutines.length; i++) {
 		if (subroutines[i].name === content) {
-			if (obfuscateRules) {
+			if (obfuscationSettings.obfuscateNames) {
 				return obfuscatedVarNames[i];
 			} else {
 				return content;
@@ -56,7 +56,7 @@ function translateSubroutineToWs(content) {
 		//Add the subroutine as it doesn't already exist (else it would've been caught by the for)
 		//However, only do this if it is a default subroutine name
 		addSubroutine(content, defaultSubroutineNames.indexOf(content));
-		if (obfuscateRules) {
+		if (obfuscationSettings.obfuscateNames) {
 			for (var i = 0; i < defaultSubroutineNames.length; i++) {
 				if (defaultSubroutineNames[i].name === content) {
 					return obfuscatedVarNames[i];
@@ -108,7 +108,7 @@ function translateVarToWs(content, isGlobalVariable) {
 	var varArray = isGlobalVariable ? globalVariables : playerVariables;
 	for (var i = 0; i < varArray.length; i++) {
 		if (varArray[i].name === content) {
-			if (obfuscateRules) {
+			if (obfuscationSettings.obfuscateNames) {
 				return obfuscatedVarNames[i]
 			} else {
 				return content;
@@ -119,7 +119,7 @@ function translateVarToWs(content, isGlobalVariable) {
 		//Add the variable as it doesn't already exist (else it would've been caught by the for)
 		//However, only do this if it is a default variable name
 		addVariable(content, isGlobalVariable, defaultVarNames.indexOf(content));
-		if (obfuscateRules) {
+		if (obfuscationSettings.obfuscateNames) {
 			for (var i = 0; i < varArray.length; i++) {
 				if (varArray[i].name === content) {
 					return obfuscatedVarNames[i];
@@ -133,9 +133,12 @@ function translateVarToWs(content, isGlobalVariable) {
 }
 
 //Adds a variable to the global/player variable arrays.
-function addVariable(content, isGlobalVariable, index) {
+function addVariable(content, isGlobalVariable, index, initValue=null) {
 	if (index === undefined) {
 		error("Index is undefined");
+	}
+	if (typeof index === "string") {
+		index = parseInt(index);
 	}
 	if (reservedNames.includes(content)) {
 		error("Variable name '"+content+"' is a reserved word");
@@ -145,10 +148,51 @@ function addVariable(content, isGlobalVariable, index) {
 			"name": content,
 			"index": index,
 		});
+		if (initValue) {
+			globalInitDirectives.push(new Ast("__assignTo__", [
+				new Ast("__globalVar__", [new Ast(content, [], [], "GlobalVariable")]),
+				parse(initValue)
+			]));
+		}
 	} else {
 		playerVariables.push({
 			"name": content,
 			"index": index,
 		});
+		if (initValue) {
+			playerInitDirectives.push(new Ast("__assignTo__", [
+				new Ast("__playerVar__", [
+					new Ast("eventPlayer"), new Ast(content, [], [], "PlayerVariable"),
+				]),
+				parse(initValue),
+			]));
+		}
 	}
+}
+
+//Checks if the given name is a variable name
+function isVarName(content, checkForGlobalVar) {
+	var varArray = checkForGlobalVar ? globalVariables : playerVariables;
+	if (defaultVarNames.includes(content)) {
+		return true;
+	}
+	for (var variable of varArray) {
+		if (variable.name === content) {
+			return true;
+		}
+	}
+	return false;
+}
+
+//Checks if the given name is a subroutine name
+function isSubroutineName(content) {
+	if (defaultSubroutineNames.includes(content)) {
+		return true;
+	}
+	for (var subroutine of subroutines) {
+		if (subroutine.name === content) {
+			return true;
+		}
+	}
+	return false;
 }

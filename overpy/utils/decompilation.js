@@ -62,40 +62,41 @@ function decompileCustomGameSettingsDict(dict, kwObj) {
 		if (typeof kwObj[keyName].values === "object") {
 			value = topy(value, kwObj[keyName].values);
 
-		} else if (kwObj[keyName].values === "_string") {
-			value = value.substring(1, value.length-1).replace(/\\"/g, '"').replace(/\\\\/g, "\\");
+		} else if (kwObj[keyName].values === "__string__") {
+			value = unescapeString(value);
 
-		} else if (kwObj[keyName].values === "_percent") {
+		} else if (kwObj[keyName].values === "__percent__") {
 			if (!value.endsWith("%")) {
 				error("Expected a percentage for value of elem '"+elem+"'");
 			}
 			value = parseInt(value.substring(0, value.length-1));
 
-		} else if (kwObj[keyName].values === "_int") {
+		} else if (kwObj[keyName].values === "__int__") {
 			value = parseInt(value);
 			
-		} else if (kwObj[keyName].values === "_float") {
+		} else if (kwObj[keyName].values === "__float__") {
 			value = parseFloat(value);
 			
-		} else if (["_boolYesNo", "_boolOnOff", "_boolEnabled"].includes(kwObj[keyName].values)) {
+		} else if (["__boolYesNo__", "__boolOnOff__", "__boolEnabled__"].includes(kwObj[keyName].values)) {
 			value = topy(value, customGameSettingsKw);
-			if (["_yes", "_enabled", "_on"].includes(value)) {
+			if (["__yes__", "__enabled__", "__on__"].includes(value)) {
 				value = true;
-			} else if (["_no", "_disabled", "_off"].includes(value)) {
+			} else if (["__no__", "__disabled__", "__off__"].includes(value)) {
 				value = false;
 			} else {
 				error("Unknown value '"+value+"'");
 			}
 
-		} else if (kwObj[keyName].values === "_boolReverseEnabled") {
+		} else if (["__boolReverseYesNo__", "__boolReverseOnOff__", "__boolReverseEnabled__"].includes(kwObj[keyName].values)) {
 			value = topy(value, customGameSettingsKw);
-			if (value === "_disabled") {
-				value = true;
-			} else if (value === "_enabled") {
+			if (["__yes__", "__enabled__", "__on__"].includes(value)) {
 				value = false;
+			} else if (["__no__", "__disabled__", "__off__"].includes(value)) {
+				value = true;
 			} else {
 				error("Unknown value '"+value+"'");
 			}
+
 		} else {
 			error("Unknown value type '"+kwObj[keyName].values+"' for '"+keyName+"'");
 		}
@@ -107,18 +108,42 @@ function decompileCustomGameSettingsDict(dict, kwObj) {
 
 //Returns an array of workshop instructions (delimited by a semicolon).
 function splitInstructions(content) {
-	return splitStrOnDelimiter(content, [';']);
+	return splitStrOnDelimiter(content, ';');
 }
 
 //Returns an array of arguments (delimited by a comma).
 function getArgs(content) {
-	return splitStrOnDelimiter(content, [',']);
+	return splitStrOnDelimiter(content, ',').map(x => x.trim());
+}
+
+//Returns the prefix string (used for condition/action comments).
+function getPrefixString(content) {
+	content = content.trim();
+	if (!content.startsWith('"')) {
+		error("Expected a string at the start of '"+content+"'");
+	}
+	var i = 1;
+	var endOfStringFound = false;
+	for (; i < content.length; i++) {
+		if (content.charAt(i) === "\\") {
+			i++;
+		} else if (content.charAt(i) === '"') {
+			i++;
+			endOfStringFound = true;
+			break;
+		}
+	}
+	if (!endOfStringFound) {
+		error("Could not find end of string for '"+content+"'");
+	}
+	return content.substring(0, i);
+
 }
 
 //Returns an array of strings that are delimited by the given string(s).
 //The delimiter is only taken into account if it is not within parentheses and not within a string.
 //Example: "azer(1,2), reaz(',,,,')" will return ["azer(1,2)","reaz(',,,,')"] for a comma separator.
-function splitStrOnDelimiter(content, delimiter) {
+function splitStrOnDelimiter(content, delimiter, getAllMembers=true, rtl=false) {
 	
 	content = content.trim();
 	var bracketPos = getBracketPositions(content);
@@ -145,8 +170,8 @@ function splitStrOnDelimiter(content, delimiter) {
 		}
 
 	}
-	
 	delimiterPos.push(content.length);
+
 	
 	var result = [];
 	for (var i = 0; i < delimiterPos.length-1; i++) {
@@ -154,6 +179,14 @@ function splitStrOnDelimiter(content, delimiter) {
 		currentStr = currentStr.trim();
 		if (currentStr.length > 0) {
 			result.push(currentStr);
+		}
+	}
+
+	if (!getAllMembers && result.length > 2) {
+		if (rtl) {
+			result = [result.slice(0, result.length-1).join(delimiter), result[result.length-1]];
+		} else {
+			result = [result[0], result.slice(1).join(delimiter)];
 		}
 	}
 	

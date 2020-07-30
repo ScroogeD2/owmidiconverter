@@ -32,7 +32,7 @@ function translate(keyword, toWorkshop, keywordObj, options={}) {
 	if (toWorkshop) {
 		for (var i = 0; i < currentArrayElementNames.length; i++) {
 			if (keyword === currentArrayElementNames[i]) {
-				return translate("_currentArrayElement", true, valueFuncKw);
+				return translate("__currentArrayElement__", true, valueFuncKw);
 			}
 		}
 	}
@@ -73,19 +73,14 @@ function translate(keyword, toWorkshop, keywordObj, options={}) {
 				keywordComparing = keywordComparing.replace(/\s/g, "")
 			}
 			if (keywordComparing === keyword) {
-				return key;
+				var result = key;
+				if ("args" in keywordObj[key] && keywordObj[key].args !== null && keywordObj[key].args.length === 0) {
+					result += "()";
+				}
+				return result;
 			}
 		}
 		
-	}
-
-	
-	
-	//Check for numbers
-	if (!isNaN(keyword)) {
-		//Convert to int then to string to remove unnecessary 0s.
-		keyword = trimNb(Number(keyword).toString());
-		return keyword;
 	}
 	
 	error("No match found for keyword '"+keyword+"'");	
