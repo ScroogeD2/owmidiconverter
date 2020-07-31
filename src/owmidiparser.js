@@ -14,7 +14,7 @@ const PIANO_RANGE = Object.freeze({
 });
 const OCTAVE = 12;
 
-/* Settings for the parsing the midi data.
+/* Settings for parsing the midi data.
     - startTime: time (seconds) in the midi file when this script begins reading the data
     - voices: amount of bots required to play the resulting script, maximum amount of pitches allowed in any chord.
               At least 6 recommended to make sure all songs play back reasonably well
@@ -41,7 +41,6 @@ const MAX_TOTAL_ARRAY_ELEMENTS = 9000;
 
 // Amount of decimals in the time of each note
 const NOTE_PRECISION = 3;
-
 
 // Maximum time interval (milliseconds) between two chords
 const MAX_TIME_INTERVAL = 9999;
@@ -98,7 +97,7 @@ function convertMidi(mid, settings={}, compressionEnabled=true) {
             arrayInfo.owArrays = compressSongArrays(arrayInfo.owArrays);
         }
 
-        rules = writeWorkshopRules(arrayInfo.owArrays, settings["voices"]);
+        rules = writeWorkshopRules(arrayInfo.owArrays, settings["voices"], compressionEnabled);
     }
     
     return { 
@@ -203,7 +202,7 @@ function convertToArray(chords, compressionEnabled) {
     let timeArrayElements = 0;
     let chordArrayElements = 0;
 
-    // Size measured by amount of array elements used
+    // Size measured by the amount of array elements used
     let uncompressedSize = 0;
     let compressedSize = 0;
 
@@ -296,13 +295,15 @@ function compressSongArrays(owArrays) {
 }
 
 
-function writeWorkshopRules(owArrays, maxVoices) {
+function writeWorkshopRules(owArrays, maxVoices, compressionEnabled) {
     // Creates workshop rules containing the song data in arrays, 
     // ready to be pasted into Overwatch
     
-    let rules = [`rule(\"Max amount of bots required\"){event{Ongoing-Global;}` +
-    `actions{Global.maxBots = ${maxVoices};Global.maxArraySize = ${MAX_OW_ARRAY_SIZE};
-    Global.compressedElementSize = ${COMPRESSED_ELEMENT_LENGTH};}}\n`];
+    let rules = [`rule(\"General song data\"){event{Ongoing-Global;}actions{
+    Global.maxBots = ${maxVoices};
+    Global.maxArraySize = ${MAX_OW_ARRAY_SIZE};
+    Global.compressedElementSize = ${COMPRESSED_ELEMENT_LENGTH};
+    Global.compressionEnabled = ${compressionEnabled};}}\n`];
 
     // Write all 3 arrays in owArrays to workshop rules
     for (let [arrayName, songArray] of Object.entries(owArrays)) {
