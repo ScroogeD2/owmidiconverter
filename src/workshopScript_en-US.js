@@ -291,7 +291,10 @@ rule("Play loop")
         "Because the maximum size of overwatch arrays is 999 per dimension, the song data arrays are split to several indexes of a 2d array. To get the correct index of the required value in these arrays, modulo and division are used instead of a second index:"
         disabled Continue;
         "value = songArray[math.floor(index / maxArraySize)][index % maxArraySize]"
-        While(Round To Integer(Global.timeArrayIndex / Global.maxArraySize, Down) < Count Of(Global.timeArrays) && Global.songPlaying);
+        disabled Continue;
+        "While((index < 2dArrayLength) && songPlaying)"
+        While(Global.timeArrayIndex < Global.maxArraySize * (Count Of(Global.timeArrays) - 1) + Count Of(Last Of(Global.timeArrays))
+            && Global.songPlaying);
             "Get the time interval (milliseconds) between chords from timeArrays, multiply by 1000 to get seconds, modify based on speed"
             Global.waitTime += (Global.timeArrays[Round To Integer(Global.timeArrayIndex / Global.maxArraySize, Down)
                 ][Global.timeArrayIndex % Global.maxArraySize]) / (1000) * (100 / Global.speedPercent);
