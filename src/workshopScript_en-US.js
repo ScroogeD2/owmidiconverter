@@ -112,6 +112,7 @@ rule("Global init")
     actions
     {
         Disable Inspector Recording;
+        Disable Built-In Game Mode Music;
         Global.botScalar = Workshop Setting Real(Custom String("General"), Custom String("Bot Size Scalar"), 0.100, 0.100, 1);
         Global.bots = Empty Array;
         Global.speedPercent = 100;
