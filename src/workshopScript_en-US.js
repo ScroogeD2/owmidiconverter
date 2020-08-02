@@ -66,19 +66,20 @@ variables
         15: pitchArrays
         16: chordArrays
         17: maxBots
-        18: numberArray
-        19: decompressedValue
-        20: tempArray
-        21: decompressedArray
-        22: compressedElementSize
-        23: decompressedElementSize
-        24: compressedArray
-        25: compressionEnabled
-        26: I
-        27: J
-        28: K
-        29: L
-        30: defaultHorizontalFacingAngle
+        18: defaultHorizontalFacingAngle
+        30: compressionEnabled
+        31: numberArray
+        32: decompressedValue
+        33: compressedArrayLength
+        34: decompressedArray
+        35: compressedElementLength
+        36: songDataElementLength
+        37: compressedArray
+        38: compressionInfo
+        39: finalCompressedElementLength
+        40: I
+        41: J
+        42: K
 
     player:
         1: playNote
@@ -398,38 +399,26 @@ rule("Decompress all arrays")
     {
         Wait(0.250, Ignore Condition);
         Abort If(!Global.compressionEnabled);
-        Global.compressedArray = Empty Array;
-        "DECOMPRESS PITCH ARRAYS"
-        For Global Variable(I, 0, Count Of(Global.pitchArrays), 1);
-            Global.compressedArray[Global.I] = Global.pitchArrays[Global.I];
-        End;
-        Global.decompressedElementSize = 2;
-        Call Subroutine(decompressArray);
-        For Global Variable(I, 0, Count Of(Global.decompressedArray), 1);
-            Global.pitchArrays[Global.I] = Global.decompressedArray[Global.I];
-        End;
-        Global.compressedArray = Empty Array;
-        "DECOMPRESS TIME ARRAYS"
-        For Global Variable(I, 0, Count Of(Global.timeArrays), 1);
-            Global.compressedArray[Global.I] = Global.timeArrays[Global.I];
-        End;
-        Global.decompressedElementSize = 4;
-        Call Subroutine(decompressArray);
-        For Global Variable(I, 0, Count Of(Global.decompressedArray), 1);
-            Global.timeArrays[Global.I] = Global.decompressedArray[Global.I];
-        End;
-        Global.compressedArray = Empty Array;
-        "DECOMPRESS CHORD ARRAYS"
-        For Global Variable(I, 0, Count Of(Global.chordArrays), 1);
-            Global.compressedArray[Global.I] = Global.chordArrays[Global.I];
-        End;
-        Global.decompressedElementSize = 1;
-        Call Subroutine(decompressArray);
-        For Global Variable(I, 0, Count Of(Global.decompressedArray), 1);
-            Global.chordArrays[Global.I] = Global.decompressedArray[Global.I];
+        For Global Variable(i, 0, 3, 1);
+            Global.compressedArray = Empty Array;
+            For Global Variable(I, 0, Count Of(Array(Global.pitchArrays, Global.timeArrays, Global.chordArrays)[Global.i]), 1);
+                Global.compressedArray[Global.I] = Array(Global.pitchArrays, Global.timeArrays, Global.chordArrays)[Global.i][Global.I];
+            End;
+            Global.finalCompressedElementLength = Global.compressionInfo[0][Global.i];
+            Global.songDataElementLength = Global.compressionInfo[1][Global.i];
+            Call Subroutine(decompressArray);
+            For Global Variable(I, 0, Count Of(Global.decompressedArray), 1);
+                If(Global.i == 0);
+                    Global.pitchArrays[Global.I] = Global.decompressedArray[Global.I];
+                Else If(Global.i == 1);
+                    Global.timeArrays[Global.I] = Global.decompressedArray[Global.I];
+                Else If(Global.i == 2);
+                    Global.chordArrays[Global.I] = Global.decompressedArray[Global.I];
+                End;
+            End;
+            Global.compressedArray = Empty Array;
         End;
         Global.decompressedArray = Empty Array;
-        Global.compressedArray = Empty Array;
     }
 }
 
@@ -445,53 +434,57 @@ rule("Decompress array")
     {
         "Target array for the decompressed data"
         Global.decompressedArray = Empty Array;
+        Global.decompressedArray[0] = Empty Array;
         "Current decompressedArray index being written to (max of 999 elements per index)"
-        Global.L = 0;
+        Global.K = 0;
         "Array for saving individual digits of the element being decompressed"
         Global.numberArray = Empty Array;
-        Global.tempArray = Empty Array;
-        For Global Variable(I, 0, Count Of(Global.compressedArray), 1);
-            For Global Variable(J, 0, Count Of(Global.compressedArray[Global.I]), 1);
-                "Read the compressed element from left to right, append individual digits to numberArray"
-                For Global Variable(K, 0, Global.compressedElementSize, 1);
-                    Modify Global Variable(numberArray, Append To Array, Round To Integer(Global.compressedArray[Global.I][Global.J] / 10 ^ (
-                        Global.compressedElementSize - 1 - Global.K), Down) % 10);
+        Global.compressedArrayLength = Global.maxArraySize * (Count Of(Global.compressedArray) - 1) + Count Of(Last Of(
+            Global.compressedArray));
+        For Global Variable(I, 0, Global.compressedArrayLength, 1);
+            "Read the compressed element from left to right, append individual digits to numberArray. If this is the last array value, use a different variable to check its length."
+            For Global Variable(J, 0,
+                Global.I == Global.compressedArrayLength - 1 ? Global.finalCompressedElementLength : Global.compressedElementLength, 1);
+                Modify Global Variable(numberArray, Append To Array, Round To Integer(Global.compressedArray[Round To Integer(
+                    Global.I / Global.maxArraySize, Down)][Global.I % Global.maxArraySize] / 10 ^ ((
+                    Global.I == Global.compressedArrayLength - 1 ? Global.finalCompressedElementLength : Global.compressedElementLength)
+                    - 1 - Global.J), Down) % 10);
+            End;
+            While(Count Of(Global.numberArray) >= Global.songDataElementLength);
+                Global.decompressedValue = 0;
+                "Construct the original numbers by reading numberArray x elements at a time"
+                For Global Variable(J, 0, Global.songDataElementLength, 1);
+                    Global.decompressedValue += First Of(Global.numberArray) * 10 ^ (Global.songDataElementLength - 1 - Global.J);
+                    Modify Global Variable(numberArray, Remove From Array By Index, 0);
                 End;
-                While(Count Of(Global.numberArray) >= Global.decompressedElementSize);
-                    Global.decompressedValue = 0;
-                    "Construct the original numbers by reading numberArray x elements at a time"
-                    For Global Variable(K, 0, Global.decompressedElementSize, 1);
-                        Global.decompressedValue += First Of(Global.numberArray) * 10 ^ (Global.decompressedElementSize - 1 - Global.K);
-                        Modify Global Variable(numberArray, Remove From Array By Index, 0);
-                    End;
-                    Modify Global Variable(tempArray, Append To Array, Global.decompressedValue);
-                    If(Count Of(Global.tempArray) >= Global.maxArraySize);
-                        Global.decompressedArray[Global.L] = Global.tempArray;
-                        Global.tempArray = Empty Array;
-                        Global.L += 1;
-                    End;
-                End;
-                "Wait a frame every 25th element to avoid high server load"
-                If(Global.J % 25 == 0);
-                    Wait(0.016, Ignore Condition);
+                Modify Global Variable At Index(decompressedArray, Global.K, Append To Array, Global.decompressedValue);
+                If(Count Of(Global.decompressedArray[Global.K]) >= Global.maxArraySize);
+                    Global.K += 1;
+                    Global.decompressedArray[Global.K] = Empty Array;
                 End;
             End;
+            "Wait a frame every 25th element to avoid high server load"
+            If(Global.I % 25 == 0);
+                Wait(0.016, Ignore Condition);
+            End;
         End;
-        "Save any remaining data"
-        Global.decompressedArray[Global.L] = Global.tempArray;
-        Global.tempArray = Empty Array;
     }
-}`;
+}
+
+`;
 
 // Used in case the user chooses to not generate the full gamemode settings.
 const CONVERTED_MIDI_VARS = `variables
 {
     global:
-        13: maxArraySize
-        26: chordArrays
-        36: timeArrays
-        37: pitchArrays
-        39: maxBots
+        10: maxArraySize
+        14: timeArrays
+        15: pitchArrays
+        16: chordArrays
+        17: maxBots
+        30: compressionEnabled
+        35: compressedElementLength
+        38: compressionInfo
 }`;
 
 
@@ -546,7 +539,9 @@ const PIANO_POSITION_SCRIPTS = {
         Set Global Variable(banTpLocation, Vector(-10.008, 15.802, -40.435));
         Set Global Variable(defaultHorizontalFacingAngle, -92.554);
     }
-}`,
+}
+
+`,
     pointB: `rule("Note positions array init, Point B")
 {
     event
@@ -595,8 +590,9 @@ const PIANO_POSITION_SCRIPTS = {
         Set Global Variable(banTpLocation, Vector(-83.340, 13.248, -58.608));
         Set Global Variable(defaultHorizontalFacingAngle, 161.2);
     }
-}`
 }
+
+`}
 
 // Various scripts corresponding to the options on the converter webpage
 const SCRIPTS = {
