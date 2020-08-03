@@ -92,7 +92,7 @@ function convertMidi(mid, settings={}, compressionEnabled=true) {
 
     let arrayInfo = {};
     if (midiInfo.chords.size != 0) {
-        arrayInfo = convertToArray(midiInfo.chords, compressionEnabled);
+        arrayInfo = convertToArray(midiInfo.chords, mid.duration, compressionEnabled);
 
         rules = writeWorkshopRules(arrayInfo.owArrays, settings["voices"], compressionEnabled);
     }
@@ -185,7 +185,7 @@ function readMidiData(mid, settings) {
 }
 
 
-function convertToArray(chords, compressionEnabled) {
+function convertToArray(chords, songDuration, compressionEnabled) {
     // Converts the contents of the chords map 
     // to a format compatible with Overwatch
 
@@ -241,9 +241,8 @@ function convertToArray(chords, compressionEnabled) {
     }
 
     if (stopTime == 0) {
-        // The entire song was added,
-        // set stoptime to be the time of the last chord/note in the song
-        stopTime = Array.from( chords.keys() )[chords.size - 1];
+        // The entire song was added to owArrays
+        stopTime = songDuration;
     }
 
     return { owArrays, stopTime };
