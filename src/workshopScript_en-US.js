@@ -31,6 +31,7 @@ const BASE_SETTINGS = `settings
         {
             Game Mode Start: Manual
             Hero Limit: Off
+            Respawn Time Scalar: 30%
         }
     }
 
@@ -52,7 +53,7 @@ variables
         1: botSpawn
         2: bots
         3: speedPercent
-        4: songPlaying
+        4: songPlayingState
         5: timeArrayIndex
         6: playerSpawn
         7: i
@@ -160,6 +161,7 @@ rule("Player init")
     {
         Disallow Button(Event Player, Melee);Set Ability 1 Enabled(Event Player, False);Set Ability 2 Enabled(Event Player, False);Set Ultimate Ability Enabled(Event Player, False);If(Compare(Event Player, !=, Host Player));Set Primary Fire Enabled(Event Player, False);Set Secondary Fire Enabled(Event Player, False);End;If(Compare(Hero Of(Event Player), ==, Hero(Wrecking Ball)));Disallow Button(Event Player, Crouch);End;
         Teleport(Event Player, Global.playerSpawn);
+        Disable Movement Collision With Players(Event Player);
         Set Facing(Event Player, Direction From Angles(Global.defaultHorizontalFacingAngle, Vertical Facing Angle Of(Event Player)), To World);
         Preload Hero(Event Player, Hero(Symmetra));
     }
@@ -240,13 +242,14 @@ rule("Interact: create dummy bots, start playing")
     conditions
     {
         Is Button Held(Host Player, Interact) == True;
-        Global.songPlaying == 0;
+        Global.songPlayingState == 0;
         (!Global.compressionEnabled || Global.decompressionFinished) == True;
     }
 
     actions
     {
-        Global.songPlaying = 1;
+        "States:\n0: song not playing\n1: Preparing to play, creating bots\n2: song playing" 
+        Global.songPlayingState = 1;
         Global.i = 11;
         While(Count Of(Global.bots) < Global.maxBots && Global.i > 0);
             If(!Entity Exists(Players In Slot(Global.i, All Teams)));
@@ -257,7 +260,7 @@ rule("Interact: create dummy bots, start playing")
             Wait(0.016, Ignore Condition);
         End;
         Wait(1, Ignore Condition);
-        Global.songPlaying = 2;
+        Global.songPlayingState = 2;
     }
 }
 
@@ -265,16 +268,13 @@ rule("Interact: stop playing")
 {
     event
     {
-        Ongoing - Each Player;
-        All;
-        All;
+        Ongoing - Global;
     }
 
     conditions
     {
-        Event Player == Host Player;
-        Is Button Held(Event Player, Interact) == True;
-        Global.songPlaying == 2;
+        Is Button Held(Host Player, Interact) == True;
+        Global.songPlayingState == 2;
     }
 
     actions
@@ -292,7 +292,7 @@ rule("Play loop")
 
     conditions
     {
-        Global.songPlaying == 2;
+        Global.songPlayingState == 2;
     }
 
     actions
@@ -301,9 +301,9 @@ rule("Play loop")
         disabled Continue;
         "value = songArray[math.floor(index / maxArraySize)][index % maxArraySize]"
         disabled Continue;
-        "While((index < 2dArrayLength) && songPlaying)"
+        "While((index < 2dArrayLength) && songPlayingState)"
         While(Global.timeArrayIndex < Global.maxArraySize * (Count Of(Global.timeArrays) - 1) + Count Of(Last Of(Global.timeArrays))
-            && Global.songPlaying);
+            && Global.songPlayingState);
             "Get the time interval (milliseconds) between chords from timeArrays, multiply by 1000 to get seconds, modify based on speed"
             Global.waitTime += (Global.timeArrays[Round To Integer(Global.timeArrayIndex / Global.maxArraySize, Down)
                 ][Global.timeArrayIndex % Global.maxArraySize]) / (1000) * (100 / Global.speedPercent);
@@ -341,7 +341,7 @@ rule("Stop playing")
         End;
         Global.bots = Empty Array;
         Wait(0.300, Ignore Condition);
-        Global.songPlaying = 0;
+        Global.songPlayingState = 0;
         Global.timeArrayIndex = 0;
         Global.pitchArrayIndex = 0;
         Global.waitTime = 0;
@@ -359,7 +359,6 @@ rule("Play note")
 
     conditions
     {
-        Has Spawned(Event Player) == True;
         Is Dummy Bot(Event Player) == True;
         Event Player.playNote == True;
     }
