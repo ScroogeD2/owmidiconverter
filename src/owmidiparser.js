@@ -265,7 +265,7 @@ function compressSongArrays(owArrays) {
     (128 characters per array element and not limited to digits 0-9), but there is no straightforward way to read them 
     with workshop due to lack of simple string methods. Up to 7 digits can be used per integer while still maintaining accuracy.
 
-    Things to look into later: delta encoding/compression, Huffman coding
+    Things to look into later: delta encoding/compression, RLE
     */
 
     let compressedArrays = {

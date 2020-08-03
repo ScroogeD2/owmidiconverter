@@ -67,6 +67,8 @@ variables
         16: chordArrays
         17: maxBots
         18: defaultHorizontalFacingAngle
+        28: decompressionFinished
+        29: decompressionPercentages
         30: compressionEnabled
         31: numberArray
         32: decompressedValue
@@ -113,9 +115,10 @@ rule("Global init")
     {
         Disable Inspector Recording;
         Disable Built-In Game Mode Music;
-        Global.botScalar = Workshop Setting Real(Custom String("General"), Custom String("Bot Size Scalar"), 0.100, 0.100, 1);
+        Global.botScalar = 0.100;
         Global.bots = Empty Array;
         Global.speedPercent = 100;
+        Global.decompressionFinished = False;
         Create HUD Text(All Players(All Teams), Null, Null, Custom String("Speed: {0}%", Global.speedPercent), Right, 0, White, White,
             White, Visible To and String, Default Visibility);
         Create HUD Text(All Players(All Teams), Null, Null, Custom String(
@@ -128,6 +131,11 @@ rule("Global init")
         Create HUD Text(Filtered Array(All Players(All Teams), Has Status(Current Array Element, Frozen)), Custom String(
             "The host player has decided to remove you temporarily. Please wait a minute before rejoining."), Null, Null, Top, 1, White,
             White, White, Visible To and String, Default Visibility);
+        Create HUD Text(Global.decompressionFinished ? Empty Array : Host Player, Null, Null, Custom String(
+            " \n\n\nDecompressing\nPitch Arrays      {0}%\nTime Arrays        {1}%\nChord Arrays   {2}%", 
+            Global.decompressionPercentages[0], Global.decompressionPercentages[1], Global.decompressionPercentages[2]), 
+            Top, 10, White, White, White, Visible To and String, Default Visibility);
+        Global.decompressionPercentages = Array(0, 0, 0);
     }
 }
 
@@ -233,6 +241,7 @@ rule("Interact: create dummy bots, start playing")
     {
         Is Button Held(Host Player, Interact) == True;
         Global.songPlaying == 0;
+        (!Global.compressionEnabled || Global.decompressionFinished) == True;
     }
 
     actions
@@ -403,6 +412,7 @@ rule("Decompress all arrays")
     {
         Wait(0.250, Ignore Condition);
         Abort If(!Global.compressionEnabled);
+        "Decompress pitch arrays, time arrays and chord arrays"
         For Global Variable(i, 0, 3, 1);
             Global.compressedArray = Empty Array;
             For Global Variable(I, 0, Count Of(Array(Global.pitchArrays, Global.timeArrays, Global.chordArrays)[Global.i]), 1);
@@ -421,8 +431,10 @@ rule("Decompress all arrays")
                 End;
             End;
             Global.compressedArray = Empty Array;
+            Global.decompressionPercentages[Global.i] = 100;
         End;
         Global.decompressedArray = Empty Array;
+        Global.decompressionFinished = True;
     }
 }
 
@@ -470,6 +482,8 @@ rule("Decompress array")
             "Wait a frame every 25th element to avoid high server load"
             If(Global.I % 25 == 0);
                 Wait(0.016, Ignore Condition);
+                "Update decomrpession progress HUD"
+                Global.decompressionPercentages[Global.i] = 100 * Global.I / Global.compressedArrayLength;
             End;
         End;
     }
