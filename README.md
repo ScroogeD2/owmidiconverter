@@ -84,11 +84,11 @@ The data read by the Overwatch workshop contains only the necessary information 
   - Contains all pitches used in the song. Similar to the pitches of MIDI files, one integer is one semitone. The scale starts at 0 (C1) and ends at 64 (E6). For example, C4 (262hz) has a pitch of 36.
   - For example: Array(23, 30, 62, 23, 10, 23, 10, ...)
 
-Arrays in overwatch are limited to a maximum of 999 elements per dimension, but over a hundred thousand elements across all dimensions. Due to this, each array is split into multiple indexes of a single 2d array. For example:
+Arrays in overwatch are limited to a maximum of 1000 elements per dimension, but over a hundred thousand elements across all dimensions. Due to this, each array is split into multiple indexes of a single 2d array. For example:
 ```
-pitchArrays = [0]: Array of 999
-              [1]: Array of 999
-              [2]: Array of 999
+pitchArrays = [0]: Array of 1000
+              [1]: Array of 1000
+              [2]: Array of 1000
               [3]: Array of 123
 ```
 

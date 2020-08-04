@@ -68,9 +68,9 @@ variables
         16: chordArrays
         17: maxBots
         18: defaultHorizontalFacingAngle
-        28: decompressionFinished
+        28: hasDecompressionFinished
         29: decompressionPercentages
-        30: compressionEnabled
+        30: isCompressionEnabled
         31: numberArray
         32: decompressedValue
         33: compressedArrayLength
@@ -119,7 +119,7 @@ rule("Global init")
         Global.botScalar = 0.100;
         Global.bots = Empty Array;
         Global.speedPercent = 100;
-        Global.decompressionFinished = False;
+        Global.hasDecompressionFinished = False;
         Create HUD Text(All Players(All Teams), Null, Null, Custom String("Speed: {0}%", Global.speedPercent), Right, 0, White, White,
             White, Visible To and String, Default Visibility);
         Create HUD Text(All Players(All Teams), Null, Null, Custom String(
@@ -132,7 +132,7 @@ rule("Global init")
         Create HUD Text(Filtered Array(All Players(All Teams), Has Status(Current Array Element, Frozen)), Custom String(
             "The host player has decided to remove you temporarily. Please wait a minute before rejoining."), Null, Null, Top, 1, White,
             White, White, Visible To and String, Default Visibility);
-        Create HUD Text(Global.decompressionFinished ? Empty Array : Host Player, Null, Null, Custom String(
+        Create HUD Text(Global.hasDecompressionFinished ? Empty Array : Host Player, Null, Null, Custom String(
             " \n\n\nDecompressing\nPitch Arrays      {0}%\nTime Arrays        {1}%\nChord Arrays   {2}%", 
             Global.decompressionPercentages[0], Global.decompressionPercentages[1], Global.decompressionPercentages[2]), 
             Top, 10, White, White, White, Visible To and String, Default Visibility);
@@ -243,7 +243,7 @@ rule("Interact: create dummy bots, start playing")
     {
         Is Button Held(Host Player, Interact) == True;
         Global.songPlayingState == 0;
-        (!Global.compressionEnabled || Global.decompressionFinished) == True;
+        (!Global.isCompressionEnabled || Global.hasDecompressionFinished) == True;
     }
 
     actions
@@ -297,7 +297,7 @@ rule("Play loop")
 
     actions
     {
-        "Because the maximum size of overwatch arrays is 999 per dimension, the song data arrays are split to several indexes of a 2d array. To get the correct index of the required value in these arrays, modulo and division are used instead of a second index:"
+        "Because the maximum size of overwatch arrays is 1000 per dimension, the song data arrays are split to several indexes of a 2d array. To get the correct index of the required value in these arrays, modulo and division are used instead of a second index:"
         disabled Continue;
         "value = songArray[math.floor(index / maxArraySize)][index % maxArraySize]"
         disabled Continue;
@@ -410,7 +410,7 @@ rule("Decompress all arrays")
     actions
     {
         Wait(0.250, Ignore Condition);
-        Abort If(!Global.compressionEnabled);
+        Abort If(!Global.isCompressionEnabled);
         "Decompress pitch arrays, time arrays and chord arrays"
         For Global Variable(i, 0, 3, 1);
             Global.compressedArray = Empty Array;
@@ -433,7 +433,7 @@ rule("Decompress all arrays")
             Global.decompressionPercentages[Global.i] = 100;
         End;
         Global.decompressedArray = Empty Array;
-        Global.decompressionFinished = True;
+        Global.hasDecompressionFinished = True;
     }
 }
 
@@ -450,7 +450,7 @@ rule("Decompress array")
         "Target array for the decompressed data"
         Global.decompressedArray = Empty Array;
         Global.decompressedArray[0] = Empty Array;
-        "Current decompressedArray index being written to (max of 999 elements per index)"
+        "Current decompressedArray index being written to (max of 1000 elements per index)"
         Global.K = 0;
         "Array for saving individual digits of the element being decompressed"
         Global.numberArray = Empty Array;
@@ -499,7 +499,7 @@ const CONVERTED_MIDI_VARS = `variables
         15: pitchArrays
         16: chordArrays
         17: maxBots
-        30: compressionEnabled
+        30: isCompressionEnabled
         35: compressedElementLength
         38: compressionInfo
 }`;

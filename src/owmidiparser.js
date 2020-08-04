@@ -30,8 +30,8 @@ const DEFAULT_SETTINGS = {
 };
 
 // Maximum amount of elements in a single array of the song data rules.
-// Overwatch arrays are limited to 999 elements per dimension.
-const MAX_OW_ARRAY_SIZE = 999;
+// Overwatch arrays are limited to 1000 elements per dimension.
+const MAX_OW_ARRAY_SIZE = 1000;
 
 // The workshop script has a maximum Total Element Count (TEC) of 20 000, 
 // which depends on not just the amount of rules and actions but also their complexity.
@@ -64,12 +64,12 @@ const SONG_DATA_ELEMENT_LENGTHS = {
 const COMPRESSED_ELEMENT_LENGTH = 7;
 
 
-function convertMidi(mid, settings={}, compressionEnabled=true) {
+function convertMidi(mid, settings={}, isCompressionEnabled=true) {
     /*
     param mid:  a Midi object created by Tonejs/Midi
     param settings: a JS object containing user parameters for 
                     parsing the midi data, see DEFAULT_SETTINGS for an example
-    param compressionEnabled: boolean, determines whether or not to compress song data (see compressSongArrays for more info)
+    param isCompressionEnabled: boolean, determines whether or not to compress song data (see compressSongArrays for more info)
 
     Return: a JS object, containing:
         string rules:           Overwatch workshop rules containing the song Data,
@@ -92,9 +92,9 @@ function convertMidi(mid, settings={}, compressionEnabled=true) {
 
     let arrayInfo = {};
     if (midiInfo.chords.size != 0) {
-        arrayInfo = convertToArray(midiInfo.chords, mid.duration, compressionEnabled);
+        arrayInfo = convertToArray(midiInfo.chords, mid.duration, isCompressionEnabled);
 
-        rules = writeWorkshopRules(arrayInfo.owArrays, settings["voices"], compressionEnabled);
+        rules = writeWorkshopRules(arrayInfo.owArrays, settings["voices"], isCompressionEnabled);
     }
     
     return { 
@@ -185,7 +185,7 @@ function readMidiData(mid, settings) {
 }
 
 
-function convertToArray(chords, songDuration, compressionEnabled) {
+function convertToArray(chords, songDuration, isCompressionEnabled) {
     // Converts the contents of the chords map 
     // to a format compatible with Overwatch
 
@@ -221,7 +221,7 @@ function convertToArray(chords, songDuration, compressionEnabled) {
                                     )
                                    / COMPRESSED_ELEMENT_LENGTH);
 
-        if ( (compressionEnabled ? compressedSize : uncompressedSize) > MAX_TOTAL_ARRAY_ELEMENTS) {
+        if ( (isCompressionEnabled ? compressedSize : uncompressedSize) > MAX_TOTAL_ARRAY_ELEMENTS) {
             // Maximum amount of elements reached, stop adding 
             stopTime = currentChordTime;
             break;
@@ -259,10 +259,11 @@ function compressSongArrays(owArrays) {
     Total Element Count (TEC) is the limit to how much data can be pasted into the workshop prior to starting the custom game.
     The amount of data generated during runtime (by e.g. decompression) is far less limited.
     
-    When pasting integers into the workshop, the increase in TEC is only affected by 
-    the amount of integers, not their individual sizes. String arrays could be used for far better efficiency instead of integer arrays
-    (128 characters per array element and not limited to digits 0-9), but there is no straightforward way to read them 
-    with workshop due to lack of simple string methods. Up to 7 digits can be used per integer while still maintaining accuracy.
+    When pasting numbers (all of them act like floats regardless of their actual content) into the workshop, 
+    the increase in TEC is only affected by the amount of numbers, not their individual sizes. String arrays could be used 
+    for far better efficiency instead of number arrays (128 characters per array element and not limited to digits 0-9), 
+    but there is no straightforward way to read them with workshop due to lack of simple string methods. 
+    Up to 7 digits can be used per number without running into issues with floating point precision. 
 
     Things to look into later: delta encoding/compression, RLE
     */
@@ -291,16 +292,16 @@ function compressSongArrays(owArrays) {
 }
 
 
-function writeWorkshopRules(owArrays, maxVoices, compressionEnabled) {
+function writeWorkshopRules(owArrays, maxVoices, isCompressionEnabled) {
     // Creates workshop rules containing the song data in arrays, 
     // ready to be pasted into Overwatch
 
     let rules = [`rule(\"General song data\"){event{Ongoing-Global;}actions{\n` +
                  `Global.maxBots = ${maxVoices};\n` +
                  `Global.maxArraySize = ${MAX_OW_ARRAY_SIZE};\n` +
-                 `Global.compressionEnabled = ${compressionEnabled};\n`];
+                 `Global.isCompressionEnabled = ${isCompressionEnabled};\n`];
 
-    if (compressionEnabled) {
+    if (isCompressionEnabled) {
 
         owArrays = compressSongArrays(owArrays);
         
