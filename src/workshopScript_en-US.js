@@ -116,7 +116,7 @@ rule("Global init")
     {
         Disable Inspector Recording;
         Disable Built-In Game Mode Music;
-        Global.botScalar = 0.100;
+        // Global.botScalar = 0.100;
         Global.bots = Empty Array;
         Global.speedPercent = 100;
         Global.hasDecompressionFinished = False;
@@ -186,7 +186,7 @@ rule("Dummy init")
         Teleport(Event Player, Global.botSpawn);
         Disable Movement Collision With Environment(Event Player, False);
         Disable Movement Collision With Players(Event Player);
-        Start Scaling Player(Event Player, Global.botScalar, True);
+        // Start Scaling Player(Event Player, Global.botScalar, True);
         Set Invisible(Event Player, All);
         Wait(0.016, Ignore Condition);
         Set Facing(Event Player, Direction From Angles(Global.defaultHorizontalFacingAngle, 89), To World);
