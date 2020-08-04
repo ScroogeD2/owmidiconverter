@@ -72,74 +72,68 @@ All Pokemon Red/Blue themes were transcribed by Mark Benis.
 
 # Workshop array structure
 
-The data read by the Overwatch workshop contains only the necessary information to play a song: pitches and timings of notes, saved in workshop arrays. Each chord can have between 1 and 11 pitches, and consists of the following elements:
+The data read by the Overwatch workshop contains only the necessary information to play a song: pitches and timings of notes. The data is saved in 3 separate arrays: 
 
+- Time Arrays
+  - Contains the time intervals between chords, in milliseconds
+  - For example: Array(67, 67, 67, 123, 2, 1000, 67, 67, ...)
+- Chord Arrays
+  - Contains the amounts of pitches in each chord. Chords can have up to of 6 pitches by default, but this can be increased in the converter to a maximum of 11 (Overwatch hero limit is 12, each bot takes a slot, and 11 slots for bots leaves one for the host player).
+  - For example: Array(1, 1, 1, 1, 2, 3, 1, 7, 1, ...)
+- Pitch Arrays
+  - Contains all pitches used in the song. Similar to the pitches of MIDI files, one integer is one semitone. The scale starts at 0 (C1) and ends at 64 (E6). For example, C4 (262hz) has a pitch of 36.
+  - For example: Array(23, 30, 62, 23, 10, 23, 10, ...)
+
+Arrays in overwatch are limited to a maximum of 999 elements per dimension, but over a hundred thousand elements across all dimensions. Due to this, each array is split into multiple indexes of a single 2d array. For example:
 ```
-array[i] = Time
-array[i+1] = Pitches
-array[i+2] = pitch1
-array[i+3] = pitch2
-array[i+4] = pitch3
-array[i+5] = pitch4
-...
-array[i+(N+1)] = pitchN
-```
-
-Time is the time interval between the current chord and the previous chord, and Pitches is the amount of notes in the current chord.
-
-The elements following the first two are the pitches in the chord. Similar to the pitches of MIDI files, one integer is one semitone. The scale starts at 0 (C1) and ends at 63 (E6). For example, C4 (262hz) has a pitch of 36.
-
-The data is divided into several workshop rules to avoid hitting the workshop rule size limit, with each rule containing around 990 array elements. At the end of each rule, the generated array is saved into its own index of the SongData array: SongData = [array0, array1, array2, ...]. The maximum amount of voices needed in any chord is saved in the first element of the first array.
-
-### EXAMPLE
-The following array contains a song that plays the note G4 (pitch 43) at time 0, followed by a C minor chord (pitches 48, 51, 55) at time 0.5, followed by another G4 note at time 2.0. The maximum amount of voices needed is 3, which is saved as the first element of the whole array:
-
-```
-tempArray = []
-tempArray.append(3)
-tempArray.append(0)
-tempArray.append(1)
-tempArray.append(43)
-tempArray.append(0.5)
-tempArray.append(3)
-tempArray.append(48)
-tempArray.append(51)
-tempArray.append(55)
-tempArray.append(1.5)
-tempArray.append(1)
-tempArray.append(43)
-SongData[0] = tempArray
+pitchArrays = [0]: Array of 999
+              [1]: Array of 999
+              [2]: Array of 999
+              [3]: Array of 123
 ```
 
-The array above as a workshop script would be:
+### SONG EXAMPLE
+The following arrays contain a song that plays the note G4 (pitch 43) at time 0, followed by a C minor chord (pitches 48, 51, 55) at time 0.5, followed by another G4 note at time 2.0, and another C minor chord an octave lower (pitches 36, 39, 43) at time 2.7.
 
 ```
-rule("Song Data")
-{
-	event
-	{
-		Ongoing - Global;
-	}
-
-	actions
-	{
-		Set Global Variable(tempArray, Empty Array);
-		Modify Global Variable(tempArray, Append To Array, 3);
-		Modify Global Variable(tempArray, Append To Array, 0);
-		Modify Global Variable(tempArray, Append To Array, 1);
-		Modify Global Variable(tempArray, Append To Array, 43);
-		Modify Global Variable(tempArray, Append To Array, 0.5);
-		Modify Global Variable(tempArray, Append To Array, 3);
-		Modify Global Variable(tempArray, Append To Array, 48);
-		Modify Global Variable(tempArray, Append To Array, 51);
-		Modify Global Variable(tempArray, Append To Array, 55);
-		Modify Global Variable(tempArray, Append To Array, 1.5);
-		Modify Global Variable(tempArray, Append To Array, 1);
-		Modify Global Variable(tempArray, Append To Array, 43);
-		Set Global Variable At Index(songData, 0, Global Variable(tempArray));
-	}
-}
+timeArrays[0]  = Array(0, 500, 1500, 700)
+chordArrays[0] = Array(1, 3, 1, 3)
+pitchArrays[0] = Array(43, 48, 51, 55, 43, 36, 39, 43)
 ```
+
+### COMPRESSION
+
+To save size, several data elements are saved in a single 7-digit number. For example, when the maximum length of a data element is 3:
+
+```
+Data:             Array(12, 0, 312, 2, 56, 23, 23, 4, 153, 123, 110, ...)  
+Compressed data:  Array(0120003, 1200205, 6023023, 0041531, 23110...)
+```
+
+Total Element Count (TEC) is the limit to how much data can be pasted into the workshop prior to starting the custom game.
+The amount of data generated during runtime (by e.g. decompression) is far less limited.
+
+When pasting numbers (all of them act like floats regardless of their actual content) into the workshop, the increase in TEC is only affected by 
+the amount of numbers, not their individual sizes. String arrays could be used for far better efficiency instead of number arrays
+(128 characters per array element and not limited to digits 0-9), but there is no straightforward way to read them 
+with workshop due to lack of simple string methods. Up to 7 digits can be used per number without running into issues with floating point precision. 
+
+All 3 song data arrays use the compression above, with the following data element lengths:
+
+- Time Arrays: Maximum length of 4 (between 0000 and 9999 milliseconds, 0 to ~10 seconds)
+- Chord Arrays: Maximum length of 2 (between 01 and 11)
+- Pitch Arrays: Maximum length of 2 (between 00 and 64)
+
+### COMPRESSION EXAMPLE
+
+The song example from above would be compressed into:
+```
+timeArrays[0]  = Array(0000050, 0150007, 00)
+chordArrays[0] = Array(0103010, 3)
+pitchArrays[0] = Array(4348515, 5433639, 43)
+```
+
+Note that because data such as 00 becomes 0 after being pasted to the workshop, it is necessary to know the intended length of the final array elements (all of the others can be assumed to be 7). These, along with the lengths of the song data elements, are pasted into the workshop as part of the compressionInfo variable. (Check writeWorkshopRules() in src/owmidiparser.js for more info) 
 
 # Special thanks
 (In no particular order)
