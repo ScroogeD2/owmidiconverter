@@ -557,16 +557,34 @@ function astToOpy(content) {
     //Array functions that use current array element
     if (["__all__", "__any__", "__filteredArray__", "__sortedArray__", "__mappedArray__"].includes(content.name)) {
         //Determine the current array element name
-        var currentArrayElementName = "";
+        currentArrayElementName = "";
         if (isTypeSuitable({"Array": "Player"}, content.args[0].type)) {
             currentArrayElementName = "player";
         } else {
             currentArrayElementName = "i";
         }
+
+        if (astContainsFunctions(content.args[1], ["__currentArrayIndex__"]) && !astContainsFunctions(content.args[1], ["__currentArrayElement__"])
+            && !(content.name === "__mappedArray__" && content.args[0].name === "__filteredArray__" && astContainsFunctions(content.args[0].args[1], ["__currentArrayElement__"]))) {
+            currentArrayElementName = "_";
+        }
+
+        if (currentArrayElementName === "i") {
+            currentArrayIndexName = "idx";
+        } else {
+            currentArrayIndexName = "i";
+        }
+
+
         while (isVarName(currentArrayElementName, true)) {
             currentArrayElementName += "_";
         }
-        currentArrayElementNames.push(currentArrayElementName);
+        
+        while (isVarName(currentArrayIndexName, true)) {
+            currentArrayIndexName += "_";
+        }
+
+
 
         var result = "";
         if (content.name === "__all__" || content.name === "__any__") {
@@ -575,7 +593,11 @@ function astToOpy(content) {
                 //If there is just "current array element", no need to explicitly put it
                 result += astToOpy(content.args[0]);
             } else {
-                result += "["+astToOpy(content.args[1])+" for "+currentArrayElementName+" in ";
+                result += "["+astToOpy(content.args[1])+" for "+currentArrayElementName;
+                if (astContainsFunctions(content.args[1], ["__currentArrayIndex__"])) {
+                    result += ", "+currentArrayIndexName;
+                }
+                result += " in ";
                 var opIn = astToOpy(content.args[0]);
                 if (astContainsFunctions(content.args[0], ["__ifThenElse__"])) {
                     opIn = "("+opIn+")";
@@ -584,7 +606,11 @@ function astToOpy(content) {
             }
             result += ")";
         } else if (content.name === "__mappedArray__") {
-            result += "["+astToOpy(content.args[1])+" for "+currentArrayElementName+" in ";
+            result += "["+astToOpy(content.args[1])+" for "+currentArrayElementName;
+            if (astContainsFunctions(content.args[1], ["__currentArrayIndex__"]) || content.args[0].name === "__filteredArray__" && astContainsFunctions(content.args[0].args[1], ["__currentArrayIndex__"])) {
+                result += ", "+currentArrayIndexName;
+            }
+            result += " in ";
             if (content.args[0].name === "__filteredArray__") {
                 result += astToOpy(content.args[0].args[0])+" if "+astToOpy(content.args[0].args[1]);
             } else {
@@ -592,7 +618,11 @@ function astToOpy(content) {
             }
             result += "]";
         } else if (content.name === "__filteredArray__") {
-            result += "["+currentArrayElementName+" for "+currentArrayElementName+" in ";
+            result += "["+currentArrayElementName+" for "+currentArrayElementName;
+            if (astContainsFunctions(content.args[1], ["__currentArrayIndex__"])) {
+                result += ", "+currentArrayIndexName;
+            }
+            result += " in ";
             var opArray = astToOpy(content.args[0]);
             if (astContainsFunctions(content.args[0], ["__ifThenElse__"])) {
                 opArray = "("+opArray+")";
@@ -607,20 +637,31 @@ function astToOpy(content) {
             result += "sorted("+astToOpy(content.args[0]);
             //If there is just "current array element", no need to explicitly put it
             if (content.args[1].name !== "__currentArrayElement__") {
-                result += ", lambda "+currentArrayElementName+": "+astToOpy(content.args[1]);
+                result += ", lambda "+currentArrayElementName;
+                if (astContainsFunctions(content.args[1], ["__currentArrayIndex__"])) {
+                    result += ", "+currentArrayIndexName;
+                }
+                result +=": "+astToOpy(content.args[1]);
             }
             result += ")";
         }
 
-        currentArrayElementNames.pop();
+        currentArrayElementName = null;
         return result;
     }
 
     if (content.name === "__currentArrayElement__") {
-        if (currentArrayElementNames.length === 0) {
-            error("currentArrayElementNames is empty");
+        if (currentArrayElementName === null) {
+            error("currentArrayElementName is null");
         }
-        return currentArrayElementNames[currentArrayElementNames.length-1];
+        return currentArrayElementName;
+    }
+    
+    if (content.name === "__currentArrayIndex__") {
+        if (currentArrayIndexName === null) {
+            error("currentArrayIndexName is null");
+        }
+        return currentArrayIndexName;
     }
 
     //Other functions
@@ -669,6 +710,16 @@ function astToOpy(content) {
     }
     if (content.name === "__raycastHitPlayer__") {
         return "raycast("+content.args.map(x => astToOpy(x)).join(", ")+").getPlayerHit()";
+    }
+
+    if (content.name === "__workshopSettingToggle__") {
+        return "createWorkshopSetting(bool, "+content.args.map(x => astToOpy(x)).join(", ")+")";
+    }
+    if (content.name === "__workshopSettingInteger__") {
+        return "createWorkshopSetting(int<"+astToOpy(content.args[3])+":"+astToOpy(content.args[4])+">, "+content.args.slice(0, 3).map(x => astToOpy(x)).join(", ")+")";
+    }
+    if (content.name === "__workshopSettingReal__") {
+        return "createWorkshopSetting(float<"+astToOpy(content.args[3])+":"+astToOpy(content.args[4])+">, "+content.args.slice(0, 3).map(x => astToOpy(x)).join(", ")+")";
     }
 
 

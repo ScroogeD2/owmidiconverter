@@ -41,22 +41,34 @@ const constantValues =
     },
     "TeamLiteral": {
         "1": {
-            "guid": "00000000B472",
+            "guid": "000000002D71",
             "en-US": "Team 1",
+            "es-ES": "Equipo 1",
             "es-MX": "Equipo 1",
-            "fr-FR": "Équipe 1",
+            "fr-FR": "Équipe 1",
+            "it-IT": "Squadra 1",
             "ja-JP": "チーム1",
+            "ko-KR": "1팀",
+            "pl-PL": "Drużyna 1",
             "pt-BR": "Equipe 1",
-            "zh-CN": "队伍1"
+            "ru-RU": "Команда 1",
+            "zh-CN": "队伍1",
+            "zh-TW": "隊伍1"
         },
         "2": {
-            "guid": "00000000B471",
+            "guid": "000000002D72",
             "en-US": "Team 2",
+            "es-ES": "Equipo 2",
             "es-MX": "Equipo 2",
-            "fr-FR": "Équipe 2",
+            "fr-FR": "Équipe 2",
+            "it-IT": "Squadra 2",
             "ja-JP": "チーム2",
+            "ko-KR": "2팀",
+            "pl-PL": "Drużyna 2",
             "pt-BR": "Equipe 2",
-            "zh-CN": "队伍2"
+            "ru-RU": "Команда 2",
+            "zh-CN": "队伍2",
+            "zh-TW": "隊伍2"
         },
         "ALL": {
             "guid": "00000000B470",
@@ -2093,46 +2105,53 @@ const constantValues =
     },
     "__Operator__": {
         "==": {
-            "guid": "00000000780E",
-            "en-US": "==",
-            "fr-FR": "== égal à",
-            "ja-JP": " =="
+            "en-US": "=="
         },
         "!=": {
-            "guid": "00000000780F",
-            "en-US": "!=",
-            "fr-FR": "!= différent de"
+            "en-US": "!="
         },
         "<=": {
-            "guid": "000000007811",
-            "en-US": "<=",
-            "fr-FR": "<= inférieur ou égal à"
+            "en-US": "<="
         },
         ">=": {
-            "guid": "000000007814",
-            "en-US": ">=",
-            "fr-FR": ">= supérieur ou égal à"
+            "en-US": ">="
         },
         "<": {
-            "guid": "000000007810",
-            "en-US": "<",
-            "fr-FR": "< inférieur à"
+            "en-US": "<"
         },
         ">": {
-            "guid": "000000007812",
-            "en-US": ">",
-            "fr-FR": "> supérieur à"
+            "en-US": ">"
         }
     },
     "Health": {
         "NORMAL": {
-            "en-US": "Health"
+            "guid": "000000011449",
+            "en-US": "Health",
+            "es-MX": "Salud",
+            "fr-FR": "Vie",
+            "ja-JP": "ライフ",
+            "pt-BR": "Vida",
+            "zh-CN": "生命值"
         },
         "ARMOR": {
-            "en-US": "Armor"
+            "guid": "000000011427",
+            "en-US": "Armor",
+            "es-MX": "Armadura",
+            "fr-FR": "Armure",
+            "it-IT": "Armatura",
+            "ja-JP": "アーマー",
+            "pt-BR": "Armadura",
+            "zh-CN": "护甲"
         },
         "SHIELDS": {
-            "en-US": "Shields"
+            "guid": "000000011428",
+            "en-US": "Shields",
+            "es-MX": "Escudos",
+            "fr-FR": "Bouclier",
+            "it-IT": "Scudi",
+            "ja-JP": "シールド",
+            "pt-BR": "Escudos",
+            "zh-CN": "护盾"
         }
     }
 }
