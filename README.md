@@ -1,6 +1,7 @@
 # Overwatch MIDI converter
 A tool for converting MIDI files into Overwatch workshop arrays, allowing you to play them ingame [with this gamemode.](https://workshop.codes/ZPVWJ)  
-All Overwatch text languages are supported. (See [Known issues](#known-issues) for a note about Japanese and Chinese)  
+Example video: https://youtu.be/3bG8LEePLRA  
+All Overwatch text languages are supported. (See [Known issues](#known-issues) for a note about French.)  
 
 If you have any feedback, bug reports, or if you just want to say hello, you can contact me on Discord: ScroogeD#5147
 
@@ -16,7 +17,7 @@ If you have any feedback, bug reports, or if you just want to say hello, you can
 
 # How to use
 **Please note**: Only PC users can convert MIDI files and paste the resulting script into the workshop. Console users can still use the mode, but only by importing workshop codes made by PC users. See [Workshop Codes](#workshop-codes) for example codes with songs.
-- Open the [MIDI converter webpage.](https://scrooged2.github.io/owmidiconverter/converter)
+- Open the [**MIDI converter webpage.**](https://scrooged2.github.io/owmidiconverter/converter)
 - Upload a MIDI (.mid) file to the webpage, choose your settings (hover over the texts and read the tooltips for more information), and click Convert MIDI.
   - Make sure to select a language that matches the text language of your Overwatch. If you don't, the generated script can't be pasted into the game. If your text language is French and you're using the Firefox browser, [read this.](#known-issues)
   - If you get a warning about a type 0 file, keep in mind that percussion may still exist in the converted data, causing the bots to play wrong notes. See [#1](https://github.com/ScroogeD2/owmidiconverter/issues/1) for more information.
