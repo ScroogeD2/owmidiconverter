@@ -116,14 +116,14 @@ rule("Global init")
     {
         Disable Inspector Recording;
         Disable Built-In Game Mode Music;
-        // Global.botScalar = 0.100;
+        "Global.botScalar = 0.100;"
         Global.bots = Empty Array;
         Global.speedPercent = 100;
         Global.hasDecompressionFinished = False;
         Create HUD Text(All Players(All Teams), Null, Null, Custom String("Speed: {0}%", Global.speedPercent), Right, 0, White, White,
             White, Visible To and String, Default Visibility);
         Create HUD Text(All Players(All Teams), Null, Null, Custom String(
-            "Host player: Press Interact to start and stop the song, \nand Crouch+Primary or Crouch+Secondary Fire to change speed"), Top,
+            "Host player: Press Interact to start and stop the song, \\nand Crouch+Primary or Crouch+Secondary Fire to change speed"), Top,
             0, White, White, White, Visible To and String, Default Visibility);
         Create HUD Text(All Players(All Teams), Null, Custom String("By ScroogeD"), Null, Left, 0, White, Yellow, White,
             Visible To and String, Default Visibility);
@@ -133,7 +133,7 @@ rule("Global init")
             "The host player has decided to remove you temporarily. Please wait a minute before rejoining."), Null, Null, Top, 1, White,
             White, White, Visible To and String, Default Visibility);
         Create HUD Text(Global.hasDecompressionFinished ? Empty Array : Host Player, Null, Null, Custom String(
-            " \n\n\nDecompressing\nPitch Arrays      {0}%\nTime Arrays        {1}%\nChord Arrays   {2}%", 
+            " \\n\\n\\nDecompressing\\nPitch Arrays      {0}%\\nTime Arrays        {1}%\\nChord Arrays   {2}%", 
             Global.decompressionPercentages[0], Global.decompressionPercentages[1], Global.decompressionPercentages[2]), 
             Top, 10, White, White, White, Visible To and String, Default Visibility);
         Global.decompressionPercentages = Array(0, 0, 0);
@@ -162,6 +162,7 @@ rule("Player init")
         Disallow Button(Event Player, Melee);Set Ability 1 Enabled(Event Player, False);Set Ability 2 Enabled(Event Player, False);Set Ultimate Ability Enabled(Event Player, False);If(Compare(Event Player, !=, Host Player));Set Primary Fire Enabled(Event Player, False);Set Secondary Fire Enabled(Event Player, False);End;If(Compare(Hero Of(Event Player), ==, Hero(Wrecking Ball)));Disallow Button(Event Player, Crouch);End;
         Teleport(Event Player, Global.playerSpawn);
         Disable Movement Collision With Players(Event Player);
+        Wait(0.016, Ignore Condition);
         Set Facing(Event Player, Direction From Angles(Global.defaultHorizontalFacingAngle, Vertical Facing Angle Of(Event Player)), To World);
         Preload Hero(Event Player, Hero(Symmetra));
     }
@@ -186,7 +187,7 @@ rule("Dummy init")
         Teleport(Event Player, Global.botSpawn);
         Disable Movement Collision With Environment(Event Player, False);
         Disable Movement Collision With Players(Event Player);
-        // Start Scaling Player(Event Player, Global.botScalar, True);
+        "Start Scaling Player(Event Player, Global.botScalar, True);"
         Set Invisible(Event Player, All);
         Wait(0.016, Ignore Condition);
         Set Facing(Event Player, Direction From Angles(Global.defaultHorizontalFacingAngle, 89), To World);
@@ -248,7 +249,7 @@ rule("Interact: create dummy bots, start playing")
 
     actions
     {
-        "States:\n0: song not playing\n1: Preparing to play, creating bots\n2: song playing" 
+        "States:\\n0: song not playing\\n1: Preparing to play, creating bots\\n2: song playing" 
         Global.songPlayingState = 1;
         Global.i = 11;
         While(Count Of(Global.bots) < Global.maxBots && Global.i > 0);
