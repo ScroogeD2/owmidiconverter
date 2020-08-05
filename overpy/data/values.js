@@ -1475,9 +1475,7 @@ var valueFuncKw =
         "it-IT": "Globale",
         "ja-JP": "グローバル",
         "pl-PL": "Globalnie",
-        "ru-RU": "Глобальные",
         "zh-CN": "全局",
-        "zh-TW": "全域"
     },
     "__globalVar__": {
         "description": "The current value of a global variable, which is a variable that belongs to the game itself.",
