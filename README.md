@@ -1,7 +1,7 @@
 # Overwatch MIDI converter
-A tool for converting MIDI files into Overwatch workshop arrays, allowing you to play them ingame [with this gamemode.](https://workshop.codes/ZPVWJ)  
+A tool for converting MIDI files into Overwatch workshop arrays, allowing you to play them ingame.  
 Example video: https://youtu.be/3bG8LEePLRA  
-All Overwatch text languages are supported. (See [Known issues](#known-issues) for a note about French.)  
+[Link to this gamemode on workshop.codes](https://workshop.codes/ZPVWJ)  
 
 If you have any feedback, bug reports, or if you just want to say hello, you can contact me on Discord: ScroogeD#5147
 
@@ -14,6 +14,7 @@ If you have any feedback, bug reports, or if you just want to say hello, you can
 - Simultaneously play up to 11 pitches
 - Percussion instruments are automatically ignored
 - Notes outside the range of the Overwatch piano are automatically transposed up or down
+- Support for all Overwatch text languages (See [Known issues](#known-issues) for a note about French.)  
 
 # How to use
 **Please note**: Only PC users can convert MIDI files and paste the resulting script into the workshop. Console users can still use the mode, but only by importing workshop codes made by PC users. See [Workshop Codes](#workshop-codes) for example codes with songs.
