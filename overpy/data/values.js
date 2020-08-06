@@ -1470,7 +1470,7 @@ var valueFuncKw =
     },
     "__global__": {
         "return": "GlobalVariable",
-        "guid": "00000000EAFB",
+        "guid": "00000000EB1F",
         "en-US": "Global",
         "it-IT": "Globale",
         "ja-JP": "グローバル",
