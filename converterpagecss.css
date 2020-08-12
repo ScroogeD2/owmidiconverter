@@ -68,7 +68,7 @@ a {
     border: none;
     cursor: pointer;
 } 
-.collapsible {
+#extraOptions {
     display: none;
 }
 

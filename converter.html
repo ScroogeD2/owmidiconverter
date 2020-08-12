@@ -66,8 +66,8 @@
             </select>
         </div>
 
-        <button id="collapseButton" onclick="collapseElementAfter(this)">More options  +</button>
-        <div class="collapsible">
+        <button id="collapseButton" onclick="toggleVisibility('extraOptions'); toggleSigns('collapseButton');">More options  +</button>
+        <div id="extraOptions">
 
             <div class="options">
                 <div class="tooltipWrapper">
@@ -82,7 +82,7 @@
                         <span class="tooltipText">Make the bots playing the song invisible. Their primary fire remains visible.</span>
                     </div>
                 </div>
-                <input class="checkboxInput" type="checkbox" id="botsInvisibleCheckbox" checked>
+                <input class="checkboxInput" type="checkbox" id="botsInvisibleCheckbox">
 
                 <div class="tooltipWrapper">
                     <div class="tooltip">Limit player slots
@@ -125,7 +125,7 @@
         <p>Script info:</p>
         <textarea readonly id="scriptOutput-textarea" rows="7"></textarea>
 
-        <p>Copy these settings and paste them to the <a href="https://i.imgur.com/OqkaGqe.png">Custom Game Settings screen.</a> (PC only)</p>
+        <p>Copy these settings and paste them to the <a href="https://i.imgur.com/OqkaGqe.png" target="_blank">Custom Game Settings screen.</a> (PC only)</p>
         
         <button id="copyRuleButton" onclick="copyText('ruleOutput-textarea')">Copy to clipboard</button>
 
@@ -300,7 +300,7 @@
                 return;
             }
 
-            if (convertedMidi.rules == "") {
+            if (convertedMidi.rules === "") {
                 let output = "";
                 for (let error of convertedMidi.errors) {
                     output += error;
@@ -315,37 +315,37 @@
                 let customGameSettings = "";
 
                 if (document.getElementById("includeFullSettingsCheckBox").checked) {
-                    // Add BASE_SETTINGS
+                    // Add BASE_SETTINGS and modify based on selected webpage settings
                     customGameSettings += generateIngameSettings(converterSettings["voices"]);
                 } else {
-                    // Only add variables used in the converted midi script
+                    // Only add info required to paste in the song data workshop rules
                     customGameSettings += CONVERTED_MIDI_VARS;
                 }
 
-                customGameSettings += convertedMidi.rules;
+                customGameSettings += convertedMidi.workshopRules;
 
-                if (scriptLanguage != "en-US") {
-                    customGameSettings = translateWorkshopScript(customGameSettings, scriptLanguage);
+                if (scriptLanguage !== "en-US") {
+                    customGameSettings = translateCustomGameSettings(customGameSettings, scriptLanguage);
                 }
                 
-                let scriptOutput = "";
-                scriptOutput += `${convertedMidi.skippedNotes} note(s) left out due to too many overlapping pitches\n` +
-                                `${convertedMidi.transposedNotes} note(s) transposed\n` +
-                                `${converterSettings["voices"]} voice(s)\n\n`;
+                let output = "";
+                output += `${convertedMidi.skippedNotes} note(s) left out due to too many overlapping pitches\n` +
+                          `${convertedMidi.transposedNotes} note(s) transposed\n` +
+                          `${converterSettings["voices"]} voice(s)\n\n`;
                 
-                if (convertedMidi.warnings.length != 0) {
+                if (convertedMidi.warnings.length !== 0) {
                     for (let warning of convertedMidi.warnings) {
-                        scriptOutput += warning;
+                        output += warning;
                     } 
                 }
 
-                scriptOutput += `MIDI file successfully read from ${converterSettings["startTime"]} second(s) ` +
-                                `to ${roundToPlaces(convertedMidi.stopTime, 1)} second(s),\n` +
-                                `${Math.round(100*(convertedMidi.stopTime - converterSettings["startTime"]) / convertedMidi.duration)}% ` +
-                                `of the song converted to workshop arrays.\n` +
-                                `Language: ${scriptLanguage}\n`;
+                output += `MIDI file successfully read from ${converterSettings["startTime"]} second(s) ` +
+                          `to ${roundToPlaces(convertedMidi.stopTime, 1)} second(s),\n` +
+                          `${Math.round(100*(convertedMidi.stopTime - converterSettings["startTime"]) / convertedMidi.duration)}% ` +
+                          `of the song converted to workshop arrays.\n` +
+                          `Language: ${scriptLanguage}\n`;
 
-                updateElementValue("scriptOutput-textarea", scriptOutput);
+                updateElementValue("scriptOutput-textarea", output);
                 updateElementValue("ruleOutput-textarea", customGameSettings + "\n");
             }
         }
@@ -353,7 +353,8 @@
         
         function getConverterSettings() {
             // Reads the values in the webpage input fields, 
-            // ensures that they're in the correct numerical ranges
+            // ensures that they're in the correct numerical ranges.
+            // If invalid, set to the closest valid value and set that value to the webpage element.
 
             let userSettings = {};
 
@@ -417,14 +418,14 @@
             
         }
 
-        function translateWorkshopScript(script, language) {
+        function translateCustomGameSettings(script, targetLanguage) {
             // Translates by decompiling to OverPy script, 
             // then compiling back to workshop script in the selected language
 
             try {
                 let overpyScript = decompileAllRules(script);
 
-                return compile(overpyScript, language).result;
+                return compile(overpyScript, targetLanguage).result;
             }
             catch (error) {
                 updateElementValue("scriptOutput-textarea", ERRORS["TRANSLATION_ERROR"]);
@@ -434,37 +435,45 @@
 
             
         function copyText(elementId) {
-            // Copy to clipboard
+            // Copy to clipboard from a webpage element
             document.getElementById(elementId).select();
             document.execCommand("copy");
         }
         
-        function collapseElementAfter(element1) {
-            // Toggles the visibility of the element after element1, switches "+" with "–"
+        function toggleVisibility(elementId) {
+            // Toggles the visibility of a webpage element.
 
-            let collapsibleElement = element1.nextElementSibling;
+            let collapsibleElement = document.getElementById(elementId);
             
             if (collapsibleElement.style.display === "block") {
                 collapsibleElement.style.display = "none";
-                element1.innerHTML = element1.innerHTML.replace("–", "+")
             } else {
                 collapsibleElement.style.display = "block";
-                element1.innerHTML = element1.innerHTML.replace("+", "–")
             }
         }
 
-        function updateElementValue(elementId, newValue, keepOldText = false) {
-            // Updates text in a webpage element.
+        function toggleSigns(elementId) {
+            // Switches "+" with "–" in a webpage element.
 
-            let outputText = "";
+            let element = document.getElementById(elementId);
+
+            if (element.innerHTML.includes("+")) {
+                element.innerHTML = element.innerHTML.replace("+", "–")
+            } else {
+                element.innerHTML = element.innerHTML.replace("–", "+")
+            }
+
+        }
+
+        function updateElementValue(elementId, newValue, keepOldValue = false) {
+            // Updates the value of a webpage element.
+
+            let outputValue = "";
             let oldValue = document.getElementById(elementId).value;
 
-            if (keepOldText) {
-                outputText = oldValue + newValue;
-            } else {
-                outputText = newValue;
-            }
-            document.getElementById(elementId).value = outputText;
+            outputValue = keepOldValue ? oldValue + newValue : newValue;
+
+            document.getElementById(elementId).value = outputValue;
         }
     </script>
 </body>
