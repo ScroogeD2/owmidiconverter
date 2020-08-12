@@ -332,22 +332,23 @@ function writeWorkshopRules(owArrays, maxVoices, isCompressionEnabled) {
         while (index < songArray.length) {
 
             let actions = `Global.${arrayName}[${owArrayIndex}] = Array(${songArray[index]}`;
+            owArrayIndex += 1;
             index += 1;
             
             // Write 998 elements at a time to avoid going over the array size limit 
             for (let j = 0; j < MAX_OW_ARRAY_SIZE - 1; j++) {
-                actions += `, ${songArray[index]}`;
-                index += 1;
 
                 if (index >= songArray.length) {
                     break;
                 }
+
+                actions += `, ${songArray[index]}`;
+                index += 1;
             }
 
             let newRule = `rule(\"${arrayName}\"){event{Ongoing-Global;}` +
                           `actions{${actions});}}\n`;       
             rules.push(newRule);
-            owArrayIndex += 1;
         }
     }
 
