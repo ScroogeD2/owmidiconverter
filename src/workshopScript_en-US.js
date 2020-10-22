@@ -120,22 +120,22 @@ rule("Global init")
         Global.bots = Empty Array;
         Global.speedPercent = 100;
         Global.hasDecompressionFinished = False;
-        Create HUD Text(All Players(All Teams), Null, Null, Custom String("Speed: {0}%", Global.speedPercent), Right, 0, White, White,
-            White, Visible To and String, Default Visibility);
+        Create HUD Text(All Players(All Teams), Null, Null, Custom String("Speed: {0}%", Global.speedPercent), Right, 0, Color(White), Color(White),
+            Color(White), Visible To and String, Default Visibility);
         Create HUD Text(All Players(All Teams), Null, Null, Custom String(
             "Host player: Press Interact to start and stop the song, \\nand Crouch+Primary or Crouch+Secondary Fire to change speed"), Top,
-            0, White, White, White, Visible To and String, Default Visibility);
-        Create HUD Text(All Players(All Teams), Null, Custom String("By ScroogeD"), Null, Left, 0, White, Yellow, White,
+            0, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+        Create HUD Text(All Players(All Teams), Null, Custom String("By ScroogeD"), Null, Left, 0, Color(White), Color(Yellow), Color(White),
             Visible To and String, Default Visibility);
-        Create HUD Text(All Players(All Teams), Null, Custom String("Website: github.com/ScroogeD2/owmidiconverter"), Null, Left, 1, White,
-            Yellow, White, Visible To and String, Default Visibility);
+        Create HUD Text(All Players(All Teams), Null, Custom String("Website: github.com/ScroogeD2/owmidiconverter"), Null, Left, 1, Color(White),
+            Color(Yellow), Color(White), Visible To and String, Default Visibility);
         Create HUD Text(Filtered Array(All Players(All Teams), Has Status(Current Array Element, Frozen)), Custom String(
-            "The host player has decided to remove you temporarily. Please wait a minute before rejoining."), Null, Null, Top, 1, White,
-            White, White, Visible To and String, Default Visibility);
+            "The host player has decided to remove you temporarily. Please wait a minute before rejoining."), Null, Null, Top, 1, Color(White),
+            Color(White), Color(White), Visible To and String, Default Visibility);
         Create HUD Text(Global.hasDecompressionFinished ? Empty Array : Host Player, Null, Null, Custom String(
             " \\n\\n\\nDecompressing\\nPitch Arrays      {0}%\\nTime Arrays        {1}%\\nChord Arrays   {2}%", 
             Global.decompressionPercentages[0], Global.decompressionPercentages[1], Global.decompressionPercentages[2]), 
-            Top, 10, White, White, White, Visible To and String, Default Visibility);
+            Top, 10, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
         Global.decompressionPercentages = Array(0, 0, 0);
     }
 }
@@ -159,7 +159,7 @@ rule("Player init")
 
     actions
     {
-        Disallow Button(Event Player, Melee);Set Ability 1 Enabled(Event Player, False);Set Ability 2 Enabled(Event Player, False);Set Ultimate Ability Enabled(Event Player, False);If(Compare(Event Player, !=, Host Player));Set Primary Fire Enabled(Event Player, False);Set Secondary Fire Enabled(Event Player, False);End;If(Compare(Hero Of(Event Player), ==, Hero(Wrecking Ball)));Disallow Button(Event Player, Crouch);End;
+        Disallow Button(Event Player, Button(Melee));Set Ability 1 Enabled(Event Player, False);Set Ability 2 Enabled(Event Player, False);Set Ultimate Ability Enabled(Event Player, False);If(Compare(Event Player, !=, Host Player));Set Primary Fire Enabled(Event Player, False);Set Secondary Fire Enabled(Event Player, False);End;If(Compare(Hero Of(Event Player), ==, Hero(Wrecking Ball)));Disallow Button(Event Player, Button(Crouch));End;
         Teleport(Event Player, Global.playerSpawn);
         Disable Movement Collision With Players(Event Player);
         Wait(0.016, Ignore Condition);
@@ -203,8 +203,8 @@ rule("Primary fire: increase speed")
 
     conditions
     {
-        Is Button Held(Host Player, Crouch) == True;
-        Is Button Held(Host Player, Primary Fire) == True;
+        Is Button Held(Host Player, Button(Crouch)) == True;
+        Is Button Held(Host Player, Button(Primary Fire)) == True;
     }
 
     actions
@@ -222,8 +222,8 @@ rule("Secondary fire: decrease speed")
 
     conditions
     {
-        Is Button Held(Host Player, Crouch) == True;
-        Is Button Held(Host Player, Secondary Fire) == True;
+        Is Button Held(Host Player, Button(Crouch)) == True;
+        Is Button Held(Host Player, Button(Secondary Fire)) == True;
         Global.speedPercent > 5;
     }
 
@@ -242,7 +242,7 @@ rule("Interact: create dummy bots, start playing")
 
     conditions
     {
-        Is Button Held(Host Player, Interact) == True;
+        Is Button Held(Host Player, Button(Interact)) == True;
         Global.songPlayingState == 0;
         (!Global.isCompressionEnabled || Global.hasDecompressionFinished) == True;
     }
@@ -274,7 +274,7 @@ rule("Interact: stop playing")
 
     conditions
     {
-        Is Button Held(Host Player, Interact) == True;
+        Is Button Held(Host Player, Button(Interact)) == True;
         Global.songPlayingState == 2;
     }
 
@@ -370,9 +370,9 @@ rule("Play note")
             Event Player.currentPitchIndex / Global.maxArraySize, Down)][Event Player.currentPitchIndex % Global.maxArraySize]];
         Teleport(Event Player, Event Player.currentKeyPos);
         Wait(0.016, Ignore Condition);
-        Start Holding Button(Event Player, Primary Fire);
+        Start Holding Button(Event Player, Button(Primary Fire));
         Wait(0.032, Ignore Condition);
-        Stop Holding Button(Event Player, Primary Fire);
+        Stop Holding Button(Event Player, Button(Primary Fire));
         Event Player.playNote = False;
     }
 }
@@ -399,7 +399,7 @@ rule("Race condition workaround for very high playing speeds")
     }
 }
 
-rule("Bans for host player"){event{Ongoing - Global;}conditions{Is Button Held(Host Player, Reload) == True;Is Button Held(Host Player, Crouch) == True;}actions{Host Player.playerToRemove = Ray Cast Hit Player(Eye Position(Host Player), Eye Position(Host Player) + Facing Direction Of(Host Player) * 30, Filtered Array(All Players(All Teams), !Is Dummy Bot(Current Array Element)), Host Player, True);Teleport(Host Player.playerToRemove, Global.banTpLocation);Set Status(Host Player.playerToRemove, Null, Frozen, 30);Host Player.playerToRemove = Null;}}
+rule("Bans for host player"){event{Ongoing - Global;}conditions{Is Button Held(Host Player, Button(Reload)) == True;Is Button Held(Host Player, Button(Crouch)) == True;}actions{Host Player.playerToRemove = Ray Cast Hit Player(Eye Position(Host Player), Eye Position(Host Player) + Facing Direction Of(Host Player) * 30, Filtered Array(All Players(All Teams), !Is Dummy Bot(Current Array Element)), Host Player, True);Teleport(Host Player.playerToRemove, Global.banTpLocation);Set Status(Host Player.playerToRemove, Null, Frozen, 30);Host Player.playerToRemove = Null;}}
 
 rule("Decompress all arrays")
 {
