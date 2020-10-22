@@ -12,7 +12,7 @@ const BASE_SETTINGS = `settings
     {
         Allow Players Who Are In Queue: Yes
         Match Voice Chat: Enabled
-        Max Team 1 Players: 12
+        //restrictSlots
         Max Team 2 Players: 0
         Return To Lobby: Never
     }
@@ -159,7 +159,7 @@ rule("Player init")
 
     actions
     {
-        Disallow Button(Event Player, Button(Melee));Set Ability 1 Enabled(Event Player, False);Set Ability 2 Enabled(Event Player, False);Set Ultimate Ability Enabled(Event Player, False);If(Compare(Event Player, !=, Host Player));Set Primary Fire Enabled(Event Player, False);Set Secondary Fire Enabled(Event Player, False);End;If(Compare(Hero Of(Event Player), ==, Hero(Wrecking Ball)));Disallow Button(Event Player, Button(Crouch));End;
+        //restrictAbilities
         Teleport(Event Player, Global.playerSpawn);
         Disable Movement Collision With Players(Event Player);
         Wait(0.016, Ignore Condition);
@@ -187,8 +187,8 @@ rule("Dummy init")
         Teleport(Event Player, Global.botSpawn);
         Disable Movement Collision With Environment(Event Player, False);
         Disable Movement Collision With Players(Event Player);
-        "Start Scaling Player(Event Player, Global.botScalar, True);"
-        Set Invisible(Event Player, All);
+        Start Scaling Player(Event Player, Global.botScalar, True);
+        //invisibleBots
         Wait(0.016, Ignore Condition);
         Set Facing(Event Player, Direction From Angles(Global.defaultHorizontalFacingAngle, 89), To World);
     }
@@ -369,7 +369,7 @@ rule("Play note")
         Event Player.currentKeyPos = Global.notePositions[Global.pitchArrays[Round To Integer(
             Event Player.currentPitchIndex / Global.maxArraySize, Down)][Event Player.currentPitchIndex % Global.maxArraySize]];
         Teleport(Event Player, Event Player.currentKeyPos);
-        Wait(0.016, Ignore Condition);
+        Wait(0.032, Ignore Condition);
         Start Holding Button(Event Player, Button(Primary Fire));
         Wait(0.032, Ignore Condition);
         Stop Holding Button(Event Player, Button(Primary Fire));
@@ -399,7 +399,7 @@ rule("Race condition workaround for very high playing speeds")
     }
 }
 
-rule("Bans for host player"){event{Ongoing - Global;}conditions{Is Button Held(Host Player, Button(Reload)) == True;Is Button Held(Host Player, Button(Crouch)) == True;}actions{Host Player.playerToRemove = Ray Cast Hit Player(Eye Position(Host Player), Eye Position(Host Player) + Facing Direction Of(Host Player) * 30, Filtered Array(All Players(All Teams), !Is Dummy Bot(Current Array Element)), Host Player, True);Teleport(Host Player.playerToRemove, Global.banTpLocation);Set Status(Host Player.playerToRemove, Null, Frozen, 30);Host Player.playerToRemove = Null;}}
+//includeBanSystem
 
 rule("Decompress all arrays")
 {
@@ -615,7 +615,7 @@ const PIANO_POSITION_SCRIPTS = {
 // Various scripts corresponding to the options on the converter webpage
 const SCRIPTS = {
     restrictAbilities: "Disallow Button(Event Player, Melee);Set Ability 1 Enabled(Event Player, False);Set Ability 2 Enabled(Event Player, False);Set Ultimate Ability Enabled(Event Player, False);If(Compare(Event Player, !=, Host Player));Set Primary Fire Enabled(Event Player, False);Set Secondary Fire Enabled(Event Player, False);End;If(Compare(Hero Of(Event Player), ==, Hero(Wrecking Ball)));Disallow Button(Event Player, Crouch);End;",
-    botsInvisible: "Set Invisible(Event Player, All);",
+    invisibleBots: "Set Invisible(Event Player, All);",
     restrictSlots: "Max Team 1 Players: 12",
     includeBanSystem: 'rule("Bans for host player"){event{Ongoing - Global;}conditions{Is Button Held(Host Player, Reload) == True;Is Button Held(Host Player, Crouch) == True;}actions{Host Player.playerToRemove = Ray Cast Hit Player(Eye Position(Host Player), Eye Position(Host Player) + Facing Direction Of(Host Player) * 30, Filtered Array(All Players(All Teams), !Is Dummy Bot(Current Array Element)), Host Player, True);Teleport(Host Player.playerToRemove, Global.banTpLocation);Set Status(Host Player.playerToRemove, Null, Frozen, 30);Host Player.playerToRemove = Null;}}'
 }

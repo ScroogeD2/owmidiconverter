@@ -82,7 +82,7 @@
                         <span class="tooltipText">Make the bots playing the song invisible. Their primary fire remains visible.</span>
                     </div>
                 </div>
-                <input class="checkboxInput" type="checkbox" id="botsInvisibleCheckbox">
+                <input class="checkboxInput" type="checkbox" id="invisibleBotsCheckbox">
 
                 <div class="tooltipWrapper">
                     <div class="tooltip">Limit player slots
@@ -387,33 +387,32 @@
             // and returns the modified script.
 
             const userSettings = {
-                botsInvisible: document.getElementById("botsInvisibleCheckbox").checked,
-                restrictSlots: document.getElementById("restrictSlotsCheckbox").checked,
-                selectedPiano: document.getElementById("pianoSelectInput").value,
+                invisibleBots: document.getElementById("invisibleBotsCheckbox").checked,
                 restrictAbilities: document.getElementById("restrictAbilitiesCheckbox").checked,
                 includeBanSystem: document.getElementById("includeBanSystemCheckbox").checked
             };
 
             let customGameSettings = BASE_SETTINGS;
 
-            if (!userSettings.botsInvisible) {
-                customGameSettings = customGameSettings.replace(SCRIPTS["botsInvisible"], "");
+            for (let settingName in userSettings) {
+
+                let script = "";
+                if (userSettings[settingName]) {
+                    script = SCRIPTS[settingName];
+                }
+
+                // the places where scripts go are marked with "//settingName"
+                customGameSettings = customGameSettings.replace("//" + settingName, script)
             }
 
-            if (userSettings.restrictSlots) {
-                customGameSettings = customGameSettings.replace(SCRIPTS["restrictSlots"], 
-                                                                `Max Team 1 Players: ${MAX_PLAYERS - maxBots}`)
-            }
+            let restrictSlots = document.getElementById("restrictSlotsCheckbox").checked;
+            customGameSettings = customGameSettings.replace("//restrictSlots", 
+                                                            `Max Team 1 Players: ${restrictSlots ? MAX_PLAYERS - maxBots : MAX_PLAYERS}`)
+
             
-            customGameSettings += PIANO_POSITION_SCRIPTS[userSettings.selectedPiano];
-            
-            if (!userSettings.restrictAbilities) {
-                customGameSettings = customGameSettings.replace(SCRIPTS["restrictAbilities"], "");
-            }
-            
-            if (!userSettings.includeBanSystem) {
-                customGameSettings = customGameSettings.replace(SCRIPTS["includeBanSystem"], "");
-            }
+            let selectedPiano = document.getElementById("pianoSelectInput").value;
+            customGameSettings += PIANO_POSITION_SCRIPTS[selectedPiano];
+
             return customGameSettings;
             
         }
