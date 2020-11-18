@@ -192,6 +192,7 @@ function tokenize(content) {
 				obfuscateConstants: true,
 				obfuscateInspector: true,
 				ruleFilling: true,
+				copyProtection: true,
 			}
 
 			var disabledObfuscationTechniques = content.substring("#!obfuscate".length).trim().split(" ").map(x => x.trim());
@@ -206,17 +207,60 @@ function tokenize(content) {
 					obfuscationSettings.obfuscateInspector = false;
 				} else if (tech === "noRuleFilling") {
 					obfuscationSettings.ruleFilling = false;
+				} else if (tech === "noCopyProtection") {
+					obfuscationSettings.copyProtection = false;
 				} else if (tech !== "") {
-					error("Unknown obfuscation setting '"+tech+"'");
+					error("Unknown obfuscation setting '"+tech+"', valid ones are: "+Object.keys(obfuscationSettings).map(x => "no"+x[0].toUpperCase()+x.slice(1)).join(", "));
 				}
 			}
 
 		} else if (content.startsWith("#!disableOptimizations")) {
 			enableOptimization = false;
 
+		} else if (content.startsWith("#!optimizeForSize")) {
+			optimizeForSize = true;
+
+		} else if (content.startsWith("#!replace0ByCapturePercentage")) {
+			if (replacementFor0 !== null) {
+				error("A replacement for 0 has already been defined");
+			}
+			replacementFor0 = "getCapturePercentage";
+
+		} else if (content.startsWith("#!replace0ByIsMatchComplete")) {
+			if (replacementFor0 !== null) {
+				error("A replacement for 0 has already been defined");
+			}
+			replacementFor0 = "isMatchComplete";
+
+		} else if (content.startsWith("#!replace0ByPayloadProgressPercentage")) {
+			if (replacementFor0 !== null) {
+				error("A replacement for 0 has already been defined");
+			}
+			replacementFor0 = "getPayloadProgressPercentage";
+
+			/* Could also use:
+			- isAssemblingHeroes()
+			- isInSetup()
+			- isWaitingForPlayers()
+			- isGameInProgress()
+			but they are not really reliable compared to the other functions as players may decide to start the game or change gamemode.
+			*/
+
+		} else if (content.startsWith("#!replace1ByMatchRound")) {
+			if (replacementFor1 !== null) {
+				error("A replacement for 1 has already been defined");
+			}
+			replacementFor1 = "getMatchRound";
+
+		} else if (content.startsWith("#!replaceTeam1ByControlScoringTeam")) {
+			if (replacementForTeam1 !== null) {
+				error("A replacement for Team.1 has already been defined");
+			}
+			replacementForTeam1 = "getControlScoringTeam";
+
 		} else if (content.startsWith("#!suppressWarnings ")) {
 			var firstSpaceIndex = content.indexOf(" ");
-			globalSuppressedWarnings = content.substring(firstSpaceIndex).trim().split(" ").map(x => x.trim());
+			globalSuppressedWarnings.push(...content.substring(firstSpaceIndex).trim().split(" ").map(x => x.trim()));
 
 		} else {
 			error("Unknown preprocessor directive '"+content+"'");
@@ -259,7 +303,7 @@ function tokenize(content) {
 					}
 				}
 				//j++;
-				moveCursor(j-i-1);
+				moveCursor(j-i-1 + "\n".length);
 
 			} else if (content[i] === '(' || content[i] === '[' || content[i] === '{') {
 				bracketsLevel++;
@@ -279,7 +323,9 @@ function tokenize(content) {
 				for (; j < content.length; j++) {
 					if (content[j] === "\\") {
 						isBackslashed = true;
-						preprocessingDirectiveContent += content[j];
+						if (j < content.length-1 && ![" ", "\r", "\n"].includes(content[j+1])) {
+							preprocessingDirectiveContent += content[j];
+						}
 					} else if (!isBackslashed && content[j] === "\n") {
 						break;
 					} else if (content[j] !== " " && content[j] !== "\r") {
@@ -397,7 +443,8 @@ function tokenize(content) {
 							} else {
 								//debug("Resolving normal macro "+macros[k].name);
 								text = macros[k].name;
-								replacement = macros[k].replacement;
+								//replacement = macros[k].replacement;
+								replacement = resolveMacro(macros[k], [], currentLine.indentLevel);
 							}
 							
 							content = content.substring(0, i) + replacement + content.substring(i+text.length);
@@ -491,9 +538,10 @@ function resolveMacro(macro, args=[], indentLevel) {
 			scriptContent = builtInJsFunctions + scriptContent;
             try {
 				result = eval(scriptContent);
-				if (!result) {
+				if (!result && result !== 0) {
 					error("Script '"+getFilenameFromPath(macro.scriptPath)+"' yielded no result");
 				}
+				result = result.toString();
             } catch (e) {
                 var stackTrace = e.stack.split('\n').slice(1).reverse();
                 var encounteredEval = false;
@@ -554,7 +602,10 @@ function parseMacro(macro) {
 		macro.text = macro.content.substring(0, macro.content.indexOf(" ")).trim();
 		macro.name = macro.text;
         macro.replacement = macro.content.substring(macro.content.indexOf(" ")).trim();
-        macro.startingCol += macro.content.indexOf(" ")+macro.content.substring(macro.content.indexOf(" ")).search(/\S/)+1;
+		macro.startingCol += macro.content.indexOf(" ")+macro.content.substring(macro.content.indexOf(" ")).search(/\S/)+1;
+		if (reservedNames.includes(macro.name)) {
+			warn("w_redefining_keyword", "The macro name '"+macro.name+"' is a keyword");
+		}
 		
 	} else {
 		//Function macro

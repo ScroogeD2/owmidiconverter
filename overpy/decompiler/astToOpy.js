@@ -62,9 +62,9 @@ function astRulesToOpy(rules) {
                 }
             }
         }
-        if (rule.isDisabled) {
+        /*if (rule.isDisabled) {
             decompiledRuleAttributes += tabLevel(nbTabs)+"@Disabled\n";
-        }
+        }*/
         if (decompiledRuleAttributes) {
             decompiledRuleAttributes += tabLevel(nbTabs)+"\n";
         }
@@ -73,6 +73,9 @@ function astRulesToOpy(rules) {
         //Decompile the rule actions
         decompiledRule += astActionsToOpy(rule.children);
 
+        if (rule.isDisabled) {
+            decompiledRule = "/*\n" + decompiledRule + "*/";
+        }
         decompiledRule += "\n\n";
         result += decompiledRule;
     }
@@ -87,16 +90,20 @@ function astActionsToOpy(actions) {
     for (var i = 0; i < actions.length; i++) {
 
         //console.log(actions[i]);
+        debug("Parsing AST of action '"+actions[i].name+"'");
 
         if (actions[i].comment) {
             result += actions[i].comment.split("\n").map(x => tabLevel(nbTabs)+"#"+x+"\n").join("");
         }
         var decompiledAction = "";
-        if (["__elif__", "__else__", "__while__", "__for__"].includes(actions[i].name)) {
+        if (["__elif__", "__else__", "__while__", "__for__"].includes(actions[i].name) && !actions[i].isDisabled) {
             //Check if there is an "end" (or elif/else) and if we must modify the action
             var isEndFound = false;
             var depth = 0;
             for (var j = i+1; j < actions.length; j++) {
+                if (actions[j].isDisabled) {
+                    continue;
+                }
                 if (actions[i].name === "__elif__" && ["__elif__", "__else__"].includes(actions[j].name)) {
                     isEndFound = true;
                     break;
@@ -105,7 +112,7 @@ function astActionsToOpy(actions) {
                 if (["__if__", "__while__", "__for__"].includes(actions[j].name)) {
                     depth++;
                 }
-                if (actions[j].name === "__end__" && !actions[j].isDisabled) {
+                if (actions[j].name === "__end__") {
                     if (depth === 0) {
                         isEndFound = true;
                         break;
@@ -190,7 +197,7 @@ function astActionsToOpy(actions) {
                 "__while__": "while",
                 "__for__": "for",
             }
-            if (actions[i].name === "__elif__" || actions[i].name === "__else__") {
+            if ((actions[i].name === "__elif__" || actions[i].name === "__else__") && !actions[i].isDisabled) {
                 if (nbTabs > 1) {
                     nbTabs--;
                 }
@@ -213,7 +220,9 @@ function astActionsToOpy(actions) {
                 decompiledAction += rangeArgs.join(", ")+")";
             }
             decompiledAction += ":";
-            nbTabs++;
+            if (!actions[i].isDisabled) {
+                nbTabs++;
+            }
         } else if (actions[i].name === "__abortIf__" && !currentRuleHasVariableGoto) {
             decompiledAction += "if "+astToOpy(actions[i].args[0])+":\n"+tabLevel(tabLevelForThisAction+1)+"return";
             
@@ -383,6 +392,7 @@ function astActionsToOpy(actions) {
     for (var j = 0; j < decompilerGotos.length; j++) {
         result += tabLevel(nbTabs)+decompilerGotos[j].label+":\n";
     }
+    decompilerGotos = [];
 
     return result;
 
@@ -390,7 +400,7 @@ function astActionsToOpy(actions) {
 
 function astToOpy(content) {
 
-    //console.log(content);
+    debug("Parsing AST of '"+content.name+"'");
 
     if (content.type === "StringLiteral") {
         return escapeString(content.name);
@@ -405,7 +415,7 @@ function astToOpy(content) {
 
     if ([
         "__globalVar__",
-        "__hero__", "__gamemode__", "__map__", "__button__",
+        "__hero__", "__gamemode__", "__map__", "__button__", "__color__",
     ].includes(content.name)) {
         return astToOpy(content.args[0]);
     }
@@ -418,7 +428,7 @@ function astToOpy(content) {
     }
     
     if (content.type in constantValues) {
-        if (["GamemodeLiteral", "TeamLiteral", "HeroLiteral", "MapLiteral", "ButtonLiteral"].includes(content.type)) {
+        if (["GamemodeLiteral", "TeamLiteral", "HeroLiteral", "MapLiteral", "ButtonLiteral", "ColorLiteral"].includes(content.type)) {
             return content.type.replace(/Literal$/, "")+"."+content.name;
         } else if (["__ChaseTimeReeval__", "__ChaseRateReeval__"].includes(content.type)) {
             return "ChaseReeval."+content.name;
@@ -447,12 +457,12 @@ function astToOpy(content) {
     }
     if (content.name in funcToOpMapping) {
         var op1 = astToOpy(content.args[0]);
-        if (astContainsFunctions(content.args[0], Object.keys(astOperatorPrecedence).filter(x => astOperatorPrecedence[x] < astOperatorPrecedence[content.name]))) {
+        if (astContainsFunctions(content.args[0], Object.keys(astOperatorPrecedence).filter(x => astOperatorPrecedence[x] < astOperatorPrecedence[content.name] + (content.name === "__raiseToPower__" ? 1 : 0)))) {
             op1 = "("+op1+")";
         }
         var op2 = astToOpy(content.args[1]);
         
-        if (astContainsFunctions(content.args[1], Object.keys(astOperatorPrecedence).filter(x => astOperatorPrecedence[x] <= astOperatorPrecedence[content.name]))) {
+        if (astContainsFunctions(content.args[1], Object.keys(astOperatorPrecedence).filter(x => astOperatorPrecedence[x] <= astOperatorPrecedence[content.name] - (content.name === "__raiseToPower__" ? 1 : 0)))) {
             op2 = "("+op2+")";
         }
         return op1+" "+funcToOpMapping[content.name]+" "+op2;
@@ -519,6 +529,7 @@ function astToOpy(content) {
     //Functions with a dot/index
     if ([
         "__arraySlice__",
+        "__substring__",
         "__firstOf__",
         "__lastOf__",
         "__valueInArray__",
@@ -533,6 +544,9 @@ function astToOpy(content) {
         }
         if (content.name === "__arraySlice__") {
             return result+".slice("+astToOpy(content.args[1])+", "+astToOpy(content.args[2])+")";
+        }
+        if (content.name === "__substring__") {
+            return result+".substring("+astToOpy(content.args[1])+", "+astToOpy(content.args[2])+")";
         }
         if (content.name === "__firstOf__") {
             return result+"[0]";
@@ -556,7 +570,10 @@ function astToOpy(content) {
 
     //Array functions that use current array element
     if (["__all__", "__any__", "__filteredArray__", "__sortedArray__", "__mappedArray__"].includes(content.name)) {
-        //Determine the current array element name
+
+        var opyArray = astToOpy(content.args[0]);
+
+        //Determine the current array element / current array index name
         currentArrayElementName = "";
         if (isTypeSuitable({"Array": "Player"}, content.args[0].type)) {
             currentArrayElementName = "player";
@@ -591,14 +608,14 @@ function astToOpy(content) {
             result += content.name.replace(/_/g, "")+"(";
             if (content.args[1].name === "__currentArrayElement__") {
                 //If there is just "current array element", no need to explicitly put it
-                result += astToOpy(content.args[0]);
+                result += opyArray;
             } else {
                 result += "["+astToOpy(content.args[1])+" for "+currentArrayElementName;
                 if (astContainsFunctions(content.args[1], ["__currentArrayIndex__"])) {
                     result += ", "+currentArrayIndexName;
                 }
                 result += " in ";
-                var opIn = astToOpy(content.args[0]);
+                var opIn = opyArray;
                 if (astContainsFunctions(content.args[0], ["__ifThenElse__"])) {
                     opIn = "("+opIn+")";
                 }
@@ -614,7 +631,7 @@ function astToOpy(content) {
             if (content.args[0].name === "__filteredArray__") {
                 result += astToOpy(content.args[0].args[0])+" if "+astToOpy(content.args[0].args[1]);
             } else {
-                result += astToOpy(content.args[0]);
+                result += opyArray;
             }
             result += "]";
         } else if (content.name === "__filteredArray__") {
@@ -623,7 +640,7 @@ function astToOpy(content) {
                 result += ", "+currentArrayIndexName;
             }
             result += " in ";
-            var opArray = astToOpy(content.args[0]);
+            var opArray = opyArray;
             if (astContainsFunctions(content.args[0], ["__ifThenElse__"])) {
                 opArray = "("+opArray+")";
             }
@@ -634,7 +651,7 @@ function astToOpy(content) {
             }
             result += opIf+"]";
         } else if (content.name === "__sortedArray__") {
-            result += "sorted("+astToOpy(content.args[0]);
+            result += "sorted("+opyArray;
             //If there is just "current array element", no need to explicitly put it
             if (content.args[1].name !== "__currentArrayElement__") {
                 result += ", lambda "+currentArrayElementName;
@@ -647,6 +664,7 @@ function astToOpy(content) {
         }
 
         currentArrayElementName = null;
+        currentArrayIndexName = null;
         return result;
     }
 
@@ -686,9 +704,15 @@ function astToOpy(content) {
             result += escapeString(content.args[0].name);
         }
         if (formatArgs.length > 0) {
-            result += ".format("+formatArgs.map(x => astToOpy(x)).join(", ")+")";
+            console.log(formatArgs);
+            result += ".format("+formatArgs.map(x => x === undefined ? "null" : astToOpy(x)).join(", ")+")";
         }
         return result;
+    }
+    if (content.name === "rgba") {
+        if (content.args[3].args[0].numValue === 255) {
+            return "rgb("+content.args.slice(0, 3).map(x => astToOpy(x)).join(", ")+")";
+        }
     }
     if (content.name === "__round__") {
         if (content.args[1].name === "__roundUp__") {
@@ -712,14 +736,21 @@ function astToOpy(content) {
         return "raycast("+content.args.map(x => astToOpy(x)).join(", ")+").getPlayerHit()";
     }
 
+
+    if (content.name === "__workshopSettingCombo__") {
+        return "createWorkshopSetting(enum"+astToOpy(content.args[3])+", "+content.args.slice(0, 3).map(x => astToOpy(x)).join(", ")+", "+astToOpy(content.args[4])+")";
+    }
+    if (content.name === "__workshopSettingHero__") {
+        return "createWorkshopSetting(Hero, "+content.args.map(x => astToOpy(x)).join(", ")+")";
+    }
     if (content.name === "__workshopSettingToggle__") {
         return "createWorkshopSetting(bool, "+content.args.map(x => astToOpy(x)).join(", ")+")";
     }
     if (content.name === "__workshopSettingInteger__") {
-        return "createWorkshopSetting(int<"+astToOpy(content.args[3])+":"+astToOpy(content.args[4])+">, "+content.args.slice(0, 3).map(x => astToOpy(x)).join(", ")+")";
+        return "createWorkshopSetting(int["+astToOpy(content.args[3])+":"+astToOpy(content.args[4])+"], "+content.args.slice(0, 3).map(x => astToOpy(x)).join(", ")+", "+astToOpy(content.args[5])+")";
     }
     if (content.name === "__workshopSettingReal__") {
-        return "createWorkshopSetting(float<"+astToOpy(content.args[3])+":"+astToOpy(content.args[4])+">, "+content.args.slice(0, 3).map(x => astToOpy(x)).join(", ")+")";
+        return "createWorkshopSetting(float["+astToOpy(content.args[3])+":"+astToOpy(content.args[4])+"], "+content.args.slice(0, 3).map(x => astToOpy(x)).join(", ")+", "+astToOpy(content.args[5])+")";
     }
 
 

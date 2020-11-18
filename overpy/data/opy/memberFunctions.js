@@ -71,7 +71,7 @@ const opyMemberFuncs = {
         return: "String",
     },
     "index": {
-        "description": "The index of a value within the array or -1 if no such value can be found. Does not support nested arrays.",
+        "description": "The index of a value within the array or -1 if no such value can be found. Does not support nested arrays.\nWarning: if the array contains `true`, it will match against any truthy value, and `true` will match against any truthy value in the array.",
         "args": [
             {
                 "name": "VALUE",
@@ -120,6 +120,12 @@ const opyMemberFuncs = {
         class: "Array",
         return: "void",
     },
+    "reverse": {
+        "description": "Reverses the array. Built-in macro for `sorted(x, lambda _, idx: -idx)`.",
+        "args": [],
+        class: "Array",
+        return: "Array",
+    },
     "slice": {
         "description": "A copy of the specified array containing only values from a specified index range. Does not support nested arrays.",
         "args": [
@@ -139,6 +145,25 @@ const opyMemberFuncs = {
         class: "Array",
         return: "Array",
     },
+	"substring": {
+		"description": "The substring of the provided string.",
+		"args": [
+			{
+				"name": "Substring Start Index",
+				"description": "Specifies the character that will start the substring (with 0 as the first character, 1 as the second character, etc.).",
+				"type": "unsigned int",
+				"default": 0
+			},
+			{
+				"name": "Substring Length",
+				"description": "Specifies the number of characters in the substring.",
+				"type": "unsigned int",
+				"default": 0
+			}
+        ],
+        class: "String",
+		"return": "String",
+	},
     "x": {
         description: "The x component of the specified vector, usually representing a leftward amount.",
         args: null,

@@ -22,7 +22,9 @@ var playerVariables;
 var subroutines;
 var currentLanguage;
 
-const ELEMENT_LIMIT = 20000;
+const ELEMENT_LIMIT = 32768;
+//If it is in a browser then it is assumed to be in debug mode.
+const DEBUG_MODE = false;
 
 //Compilation variables - are reset at each compilation.
 
@@ -48,7 +50,9 @@ var currentRuleHasVariableGoto;
 //Settings for whether to enable obfuscation techniques.
 var obfuscationSettings;
 
+//Optimization settings.
 var enableOptimization;
+var optimizeForSize;
 
 //Contains all macros.
 var macros;
@@ -74,6 +78,22 @@ var uniqueNumber;
 var globalInitDirectives = [];
 var playerInitDirectives = [];
 
+//Workshop setting names, as each name must be unique even if belonging to different categories.
+var workshopSettingNames = [];
+
+//User-declared enums.
+var enumMembers = {};
+
+//Replacements for 0, 1, and Team.1. Those are functions that give exactly those values, and are able to be applied to all inputs. As such, they are not function dependent.
+var replacementFor0;
+var replacementFor1;
+var replacementForTeam1;
+
+//The number of elements the gamemode takes.
+var nbElements;
+
+//For the weird behavior where element count goes up by 1 for every 2 hero literals in the parameters of an action argument.
+var nbHeroesInValue;
 
 //Decompilation variables
 
@@ -107,6 +127,7 @@ function resetGlobalVariables(language) {
 		obfuscateConstants: false,
 		obfuscateInspector: false,
 		ruleFilling: false,
+		copyProtection: false,
 	}
 	macros = [];
 	fileStack = [];
@@ -123,9 +144,16 @@ function resetGlobalVariables(language) {
 	disableUnusedVars = false;
 	compiledCustomGameSettings = "";
 	enableOptimization = true;
+	optimizeForSize = false;
 	uniqueNumber = 1;
 	globalInitDirectives = [];
 	playerInitDirectives = [];
+	workshopSettingNames = [];
+	enumMembers = {};
+	replacementFor0 = null;
+	replacementFor1 = null;
+	replacementForTeam1 = null;
+	nbElements = 0;
 }
 
 //Other constants
@@ -272,13 +300,34 @@ for (var char of '!"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\
 	fullwidthMappings[char] = String.fromCodePoint(char.charCodeAt(0)+0xFEE0);
 }
 
+//Combinations of 0x01 through 0x1F (excluding 0x09, 0x0A and 0x0D). Used for workshop settings to prevent duplicates.
+//These characters render as zero-width spaces in Overwatch.
+//For some reason, 0x0B and 0x0C aren't sorted according to their ascii value.
+var workshopSettingWhitespaceChars = [0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,/*0x0b,0x0c,*/0x0e,0x0f,0x10,0x11,0x12,0x13,0x14,0x15,0x16,0x17,0x18,0x19,0x1a,0x1b,0x1c,0x1d]
+var workshopSettingWhitespace = []
+for (var chr of workshopSettingWhitespaceChars) {
+	workshopSettingWhitespace.push(String.fromCodePoint(chr));
+	workshopSettingWhitespace.push(String.fromCodePoint(0x1e, chr));
+	workshopSettingWhitespace.push(String.fromCodePoint(0x1f, chr));
+}
+workshopSettingWhitespace.sort();
+
 
 const typeTree = [
     {"Object": [
 		"Player",
 		{"float": [
 			{"FloatLiteral": [
-				"IntLiteral",
+				{"IntLiteral": [
+					"UnsignedIntLiteral",
+					"SignedIntLiteral",
+				]},
+				{"UnsignedFloatLiteral": [
+					"UnsignedIntLiteral",
+				]},
+				{"SignedFloatLiteral": [
+					"SignedIntLiteral",
+				]},
 			]},
 			{"unsigned float": [
 				"unsigned int",
@@ -287,7 +336,10 @@ const typeTree = [
 				"signed int",
 			]},
 			{"int": [
-				"IntLiteral",
+				{"IntLiteral": [
+					"UnsignedIntLiteral",
+					"SignedIntLiteral",
+				]},
 				"unsigned int",
 				"signed int",
 			]}
@@ -300,6 +352,7 @@ const typeTree = [
 		"EntityId",
 		"TextId",
 		"HealthPoolId",
+		"AssistId",
 		"String",
 		{"Direction": ["Vector"]},
 		{"Position": ["Vector"]},
@@ -309,6 +362,7 @@ const typeTree = [
 		"Team",
 		"Gamemode",
 		"Button",
+		"Color",
 	]},
 	"Array",
 	"void",
@@ -328,6 +382,7 @@ const typeTree = [
 	"GamemodeLiteral",
 	"TeamLiteral",
 	"ButtonLiteral",
+	"ColorLiteral",
 	
 	{"StringLiteral": [
 		"LocalizedStringLiteral",
@@ -371,8 +426,7 @@ typeMatrix["Vector"].push("Direction", "Position", "Velocity");
 
 reservedNames.push(...Object.keys(typeMatrix));
 
+const reservedMemberNames = ["x", "y", "z"];
+
 //An array of functions for ast parsing (to not have a 4k lines file with all the functions and be able to handle each function in a separate file).
 var astParsingFunctions = {};
-
-//If it is in a browser then it is assumed to be in debug mode.
-const DEBUG_MODE = false;//(typeof window !== "undefined");

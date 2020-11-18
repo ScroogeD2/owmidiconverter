@@ -81,7 +81,13 @@ function parseLines(lines) {
         } else if (lines[i].tokens[0].text === "settings") {
 
             try {
-                var customGameSettings = eval("("+dispTokens(lines[i].tokens.slice(1))+")");
+                if (lines[i].tokens.length === 2) {
+                    var path = getFilePath(lines[i].tokens[1].text);
+                    var customGameSettings = eval("("+getFileContent(path)+")");
+                } else {
+                    var customGameSettings = eval("("+lines[i].tokens.slice(1).map(x => x.text).join("")+")");
+
+                }
             } catch (e) {
                 error(e);
             }
@@ -101,10 +107,11 @@ function parseLines(lines) {
             }
             result.push(currentLineAst);
 
-        } else if (["rule", "if", "elif", "else", "do", "for", "def", "while", "switch", "case", "default"].includes(lines[i].tokens[0].text)) {
+        } else if (["rule", "enum", "if", "elif", "else", "do", "for", "def", "while", "switch", "case", "default"].includes(lines[i].tokens[0].text)) {
 
             var tokenToFuncMapping = {
                 "rule": "__rule__",
+                "enum": "__enum__",
                 "if": "__if__",
                 "elif": "__elif__",
                 "else": "__else__",
@@ -135,6 +142,13 @@ function parseLines(lines) {
                 instructionRuleAttributes = {};
                 instructionRuleAttributes.name = unescapeString(lineMembers[0][1].text);
 
+            } else if (funcName === "__enum__") {
+                if (lineMembers[0].length !== 2) {
+                    error("Malformatted 'enum' declaration");
+                }
+                args = [new Ast(lineMembers[0][1].text, [], [], "__EnumName__")];
+
+
             } else if (funcName === "__def__") {
                 if (lineMembers[0].length !== 4 || lineMembers[0][2].text !== "(" || lineMembers[0][3].text !== ")") {
                     error("Malformatted 'def' declaration");
@@ -143,7 +157,7 @@ function parseLines(lines) {
                 instructionRuleAttributes.subroutineName = lineMembers[0][1].text;
             }
 
-            if (!["__else__", "__doWhile__", "__rule__", "__def__", "__default__"].includes(funcName)) {
+            if (!["__else__", "__doWhile__", "__rule__", "__enum__", "__def__", "__default__"].includes(funcName)) {
                 args = [parse(lineMembers[0].slice(1))];
             }
             
@@ -193,7 +207,48 @@ function parseLines(lines) {
             }
 
             i += j-i-1;
-            children = parseLines(childrenLines);
+            if (funcName === "__enum__") {
+                //Implement our own mini-parser to not get "function does not exist" errors.
+                enumMembers[args[0].name] = {};
+                var lastIntValue = 0;
+                for (var k = 0; k < childrenLines.length; k++) {
+                    fileStack = childrenLines[k].tokens[0].fileStack;
+                    //console.log(childrenLines[k]);
+                    if (childrenLines[k].tokens[childrenLines[k].tokens.length-1].text !== ",") {
+                        if (k < childrenLines.length-1) {
+                            error("Expected ',' at the end of the line");
+                        }
+                    } else {
+                        childrenLines[k].tokens = childrenLines[k].tokens.slice(0, childrenLines[k].tokens.length-1);
+                    }
+                    var assignOperands = splitTokens(childrenLines[k].tokens, "=", false);
+                    if (assignOperands.length === 1) {
+                        //Enum member was not assigned a value
+                        if (typeof lastIntValue === "number") {
+                            enumMembers[args[0].name][childrenLines[k].tokens[0]] = getAstForNumber(lastIntValue);
+                            lastIntValue++;
+                        } else {
+                            error("Cannot auto-increment enum member, as last value was "+functionNameToString(lastIntValue));
+                        }
+                    } else {
+                        var enumValue = parse(assignOperands[1]);
+                        if (enumValue.name === "__number__") {
+                            lastIntValue = enumValue.args[0].numValue+1;
+                        } else {
+
+                            //Check that there are only constant functions, as to not mislead the programmer; enums are just macros in disguise
+                            astContainsFunctions(enumValue, notConstantFunctions, true);
+
+                            lastIntValue = enumValue;
+                        }
+                        enumMembers[args[0].name][childrenLines[k].tokens[0]] = enumValue;
+                    }
+                }
+                //We do not care about enums in the AST
+                continue;
+            } else {
+                children = parseLines(childrenLines);
+            }
 
             var instruction = new Ast(funcName, args, children);
             if (currentComments !== []) {
@@ -224,15 +279,15 @@ function commentArrayToString(comments) {
         return "";
     }
     var result = comments[comments.length-1];
-    var nbBytes = getUtf8Length(result);
-    if (nbBytes > 256) {
+    var nbChars = getUtf8Length(result);
+    if (nbChars > 256) {
         return result;
     }
     for (var i = comments.length-2; i >= 0; i--) {
-        var addedBytes = getUtf8Length(comments[i]);
-        if (nbBytes + addedBytes + 1 <= 256) {
+        var addedChars = getUtf8Length(comments[i]);
+        if (nbChars + addedChars + 1 <= 256) {
             result = comments[i]+"\n"+result;
-            nbBytes += addedBytes+1;
+            nbChars += addedChars+1;
         } else {
             break;
         }
@@ -256,7 +311,7 @@ function getOperator(tokens, operators, rtlPrecedence=false, allowUnaryPlusOrMin
 		var step = 1;
 	}
 	
-	//console.log("Checking tokens '"+dispTokens(tokens)+"' for operator(s) "+JSON.stringify(operators));
+    //console.log("Checking tokens '"+dispTokens(tokens)+"' for operator(s) "+JSON.stringify(operators));
 	
 	for (var i = start; i != end; i+=step) {
 
@@ -268,7 +323,14 @@ function getOperator(tokens, operators, rtlPrecedence=false, allowUnaryPlusOrMin
             
 		} else if (bracketsLevel === 0 && operators.includes(tokens[i].text)) {
             
-            if (allowUnaryPlusOrMinus || (i !== 0 && !Object.keys(operatorPrecedence).includes(tokens[i-1].text))) {
+            if (allowUnaryPlusOrMinus 
+                    || (i !== 0 && (!Object.keys(operatorPrecedence).includes(tokens[i-1].text) || tokens[i-1].text === "not" && tokens[i].text === "in"))
+                    || i === 0 && tokens[i].text === "not"
+            ) {
+                //Support "not in" operator
+                if (tokens[i].text === "not" && i < tokens.length-1 && tokens[i+1].text === "in") {
+                    continue;
+                }
                 operatorFound = tokens[i].text;
                 operatorPosition = i;
                 break;
@@ -345,7 +407,8 @@ function parse(content, kwargs={}) {
     for (var precedence = kwargs.minOperatorPrecedence; precedence <= operatorPrecedence["**"]; precedence++) {
 
         var operatorsToCheck = Object.keys(operatorPrecedence).filter(x => operatorPrecedence[x] === precedence);
-        var allowUnary = (precedence === operatorPrecedence["not"]);
+        //var allowUnary = (precedence === operatorPrecedence["not"]);
+        var allowUnary = false;
 
         //manually put the unary plus/minus
         if (precedence > operatorPrecedence["%"] && precedence < operatorPrecedence["**"]) {
@@ -386,15 +449,24 @@ function parse(content, kwargs={}) {
             return new Ast("__"+operator+"__", [op1, op2]);
 
         } else if (operator === "not") {
-
+            
             var op1 = parse(operands[1]);
             return new Ast("__not__", [op1]);
 
         } else if (operator === "in") {
             
+            var isNotInOperator = false;
+            if (operands[0].length > 1 && operands[0][operands[0].length-1].text === "not") {
+                isNotInOperator = true;
+                operands[0].pop();
+            }
             var value = parse(operands[0]);
             var array = parse(operands[1]);
-            return new Ast("__arrayContains__", [array, value]);
+            if (isNotInOperator) {
+                return new Ast("__not__", [new Ast("__arrayContains__", [array, value])]);
+            } else {
+                return new Ast("__arrayContains__", [array, value]);
+            }
 
         } else if (["==", "!=", "<=", ">=", "<", ">"].includes(operator)) {
 
@@ -568,7 +640,7 @@ function parse(content, kwargs={}) {
         if (isNumber(name)) {
             //It is an int, else it would have a dot, and wouldn't be processed here.
             //It is also an unsigned int, as the negative sign is not part of the name.
-            return new Ast("__number__", [new Ast(name, [], [], "IntLiteral")], [], "unsigned int");
+            return new Ast("__number__", [new Ast(name, [], [], "UnsignedIntLiteral")], [], "unsigned int");
         }
 
 		return new Ast(name);
@@ -634,8 +706,8 @@ function parse(content, kwargs={}) {
         } else {
 			error("Function 'raycast' takes 5 arguments, received "+args.length);
         }
-	}
-	
+    }
+    	
 	if (name === "sorted") {
 
         //Lazy & dirty way of properly parsing "sorted(x, lambda a,b: z)" as the parser also splits on the comma on "lambda a,b".
@@ -689,46 +761,13 @@ function parse(content, kwargs={}) {
     }
 
     if (name === "createWorkshopSetting") {
-        if (args.length !== 4) {
-            error("Function 'createWorkshopSetting' takes 4 arguments, received "+args.length);
+        if (args.length !== 4 && args.length !== 5) {
+            error("Function 'createWorkshopSetting' takes 4 or 5 arguments, received "+args.length);
         }
 
-        var settingType = parseType(args[0]);
-
-        var settingCategory = parse(args[1]);
-        var settingName = parse(args[2]);
-        var settingDefault = parse(args[3]);
-
-        if (typeof settingType === "string") {
-            if (settingType === "bool") {
-                return new Ast("__workshopSettingToggle__", [settingCategory, settingName, settingDefault]);
-            } else if (settingType === "int") {
-                return new Ast("__workshopSettingInteger__", [settingCategory, settingName, settingDefault, getAstForMinusInfinity(), getAstForInfinity()]);
-            } else if (settingType === "unsigned int") {
-                return new Ast("__workshopSettingInteger__", [settingCategory, settingName, settingDefault, getAstFor0(), getAstForInfinity()]);
-            } else if (settingType === "signed int") {
-                return new Ast("__workshopSettingInteger__", [settingCategory, settingName, settingDefault, getAstForMinusInfinity(), getAstFor0()]);
-            } else if (settingType === "float") {
-                return new Ast("__workshopSettingReal__", [settingCategory, settingName, settingDefault, getAstForMinusInfinity(), getAstForInfinity()]);
-            } else if (settingType === "unsigned float") {
-                return new Ast("__workshopSettingReal__", [settingCategory, settingName, settingDefault, getAstFor0(), getAstForInfinity()]);
-            } else if (settingType === "signed float") {
-                return new Ast("__workshopSettingReal__", [settingCategory, settingName, settingDefault, getAstForMinusInfinity(), getAstFor0()]);
-            } else {
-                error("Invalid type '"+settingType+"' for argument 1 of function 'createWorkshopSetting', expected 'int', 'float' or 'bool'");
-            }
-        } else {
-            var typeName = Object.keys(settingType)[0];
-            var typeOptions = settingType[typeName];
-            if (typeName === "int") {
-                return new Ast("__workshopSettingInteger__", [settingCategory, settingName, settingDefault, getAstForNumber(typeOptions.min), getAstForNumber(typeOptions.max)]);
-            } else if (typeName === "float") {
-                return new Ast("__workshopSettingReal__", [settingCategory, settingName, settingDefault, getAstForNumber(typeOptions.min), getAstForNumber(typeOptions.max)]);
-            } else {
-                error("Invalid type '"+typeName+"' for argument 1 of function 'createWorkshopSetting', expected 'int', 'float' or 'bool'");
-            }
-        }
+        return new Ast("createWorkshopSetting", [parseType(args[0]), ...args.slice(1).map(x => parse(x))]);
     }
+
 		
 	//Check for subroutine call
 	if (args.length === 0) {
@@ -736,6 +775,20 @@ function parse(content, kwargs={}) {
             return new Ast("__callSubroutine__", [new Ast(name, [], [], "Subroutine")]);
         }
     }
+
+    //Old functions
+    if (name === "destroyAllInWorldText") {
+        name = "destroyAllInWorldTexts";
+    } else if (name === "disableEnvironmentCollision") {
+        name = "_&disableEnvironmentCollision";
+    } else if (name === "enableEnvironmentCollision") {
+        name = "_&enableEnvironmentCollision";
+    } else if (name === "enablePlayerCollision") {
+        name = "_&enablePlayerCollision";
+    } else if (name === "horizontalAngleFromDirection") {
+        name = "horizontalAngleOfDirection";
+    }
+    
     
     return new Ast(name, args.map(x => parse(x)));
 }
@@ -766,6 +819,12 @@ function parseMember(object, member) {
         
         if (object.length === 1) {
 
+            //Check for member of a user-declared enum
+            //Do not throw an error if the name is not in the enum, as it can be in a built-in enum
+            if (object[0].text in enumMembers && name in enumMembers[object[0].text]) {
+                return enumMembers[object[0].text][name];
+            }
+
             //Check enums
             if (Object.keys(constantValues).includes(object[0].text)) {
                 return new Ast(name, [], [], object[0].text);
@@ -785,17 +844,20 @@ function parseMember(object, member) {
             } else if (object[0].text === "Button") {
                 return new Ast("__button__", [new Ast(name, [], [], "ButtonLiteral")])
 
+            } else if (object[0].text === "Color") {
+                return new Ast("__color__", [new Ast(name, [], [], "ColorLiteral")])
+
 
             //Check the pseudo-enum "math"
-            } else if (object[0].text === "math") {
-                if (name === "pi") {
-                    return getAstForNumber(3.14159265359);
-                } else if (name === "e") {
-                    return getAstForNumber(2.71828182846);
+            } else if (object[0].text === "Math") {
+                if (name === "PI") {
+                    return getAstForNumber(3.141592653589793);
+                } else if (name === "E") {
+                    return getAstForE();
                 } else {
                     error("Unhandled member 'math."+name+"'");
                 }
-        
+            
             //Check the pseudo-enum "Vector"
             } else if (object[0].text === "Vector") {
                 return new Ast("Vector."+name);
@@ -805,8 +867,7 @@ function parseMember(object, member) {
                 if (!isNumber(name)) {
                     error("Expected a number after '.' but got '"+name+"'");
                 }
-                return new Ast("__number__", [new Ast(object[0].text+"."+name, [], [], "FloatLiteral")], [], "unsigned float");
-
+                return new Ast("__number__", [new Ast(object[0].text+"."+name, [], [], "UnsignedFloatLiteral")], [], "unsigned float");
             }
         }
 
@@ -864,14 +925,31 @@ function parseMember(object, member) {
 				error("Unhandled member 'random."+name+"'");
 			}
 			
-		} else if (name === "slice") {
+		} else if (name === "reverse") {
+            if (args.length !== 0) {
+                error("Function '"+name+"' takes 1 argument, received "+args.length);
+            }
+            return new Ast("__reverse__", [parse(object)]);
+        
+        } else if (name === "slice") {
             if (args.length !== 2) {
                 error("Function 'slice' takes 2 arguments, received "+args.length);
             }
 			return new Ast("__arraySlice__", [parse(object), parse(args[0]), parse(args[1])]);
 			
+		} else if (name === "substring") {
+            if (args.length !== 2) {
+                error("Function 'substring' takes 2 arguments, received "+args.length);
+            }
+			return new Ast("__substring__", [parse(object), parse(args[0]), parse(args[1])]);
+			
 		} else {
             //Assume it is a player function
+
+            //old functions
+            if (name === "setCamera") {
+                name = "startCamera";
+            }
             return new Ast("_&"+name, [parse(object)].concat(args.map(x => parse(x))));
 		}
 	}

@@ -46,7 +46,7 @@ function error(str, token) {
 
 function warn(warnType, message) {
 	
-	if (!suppressedWarnings.includes(warnType) && warnType !== "w_type_check") {
+	if (!suppressedWarnings.includes(warnType) && !globalSuppressedWarnings.includes(warnType) && warnType !== "w_type_check") {
 		var warning = message+" ("+warnType+")";
 		if (fileStack.length !== 0) {
 			fileStack.reverse();
@@ -60,13 +60,7 @@ function warn(warnType, message) {
 	}
 }
 
-if (DEBUG_MODE) {
-	var debug = function(str) {
-		console.debug("DEBUG: "+str);
-	}
-} else {
-	var debug = function(str) {}
-}
+var debug = function(str) {}
 
 function getTypeCheckFailedMessage(content, argNb, expectedType, received) {
 
@@ -116,6 +110,8 @@ function functionNameToString(content) {
 		funcDisplayName = "function '"+funcToDisplayMapping[content.name]+"'";
 	} else if (isTypeSuitable("StringLiteral", content.type)) {
 		funcDisplayName = "string "+escapeString(content.name);
+	} else if (content.name === "__number__") {
+		funcDisplayName = "number '"+content.args[0].numValue+"'";
 	} else {
 		funcDisplayName = "function '"+content.name+"'";
 	}
@@ -133,7 +129,7 @@ function typeToString(type) {
 			return typeToString(type["Array"])+"[]";
 
 		} else if ("Vector" in type || "Direction" in type || "Position" in type || "Velocity" in type) {
-			return Object.keys(type)[0]+"<"+type[Object.keys(type)[0]].map(x => typeToString(x)).join(", ")+">";
+			return Object.keys(type)[0]+"["+type[Object.keys(type)[0]].map(x => typeToString(x)).join(", ")+"]";
 
 		} else {
 			error("Could not display type '"+JSON.stringify(type)+"'");

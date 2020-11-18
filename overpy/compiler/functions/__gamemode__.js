@@ -20,10 +20,7 @@
 astParsingFunctions.__gamemode__ = function(content) {
 
     if (obfuscationSettings.obfuscateConstants) {
-        return new Ast("__valueInArray__", [
-            new Ast("__globalVar__", [new Ast("__obfuscationConstants__", [], [], "GlobalVariable")]),
-            getAstForNumber(obfuscationConstantsMapping.GamemodeLiteral[content.args[0].name]),
-        ]);
+        return obfuscateConstant("GamemodeLiteral", content);
     } else {
         return content;
     }

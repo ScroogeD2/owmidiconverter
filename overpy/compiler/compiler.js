@@ -55,6 +55,7 @@ function compile(content, language="en-US", _rootPath="") {
 		}
 		console.log(astRules);
 	}
+
     var parsedAstRules = parseAstRules(astRules);
 
 	if (DEBUG_MODE) {
@@ -84,6 +85,8 @@ function compile(content, language="en-US", _rootPath="") {
 		playerVariables: playerVariables,
 		subroutines: subroutines,
 		encounteredWarnings: encounteredWarnings,
+		enumMembers: enumMembers,
+		nbElements: nbElements,
 	};
 }
 
@@ -188,6 +191,10 @@ function generateVariablesField() {
 		result = tows("__variables__", ruleKw)+" {\n"+result+"}\n";
 	}
 
+	if (nbElements > ELEMENT_LIMIT) {
+		warn("w_element_limit", "The gamemode is over the element limit ("+nbElements+" > "+ELEMENT_LIMIT+" elements)");
+	}
+
 	return result;
 }
 
@@ -264,6 +271,11 @@ function compileCustomGameSettings(customGameSettings) {
 	if (typeof customGameSettings !== "object" || customGameSettings === null) {
 		error("Expected an object for custom game settings");
 	}
+
+	if (compiledCustomGameSettings !== "") {
+		error("Custom game settings have already been declared");
+	}
+	
 	var result = {};
 	for (var key of Object.keys(customGameSettings)) {
 		if (key === "main" || key === "lobby") {
@@ -352,20 +364,20 @@ function compileCustomGameSettings(customGameSettings) {
 
 	nbTabs = 0;
 	function deserializeObject(obj) {
-		var result = "\n"+tabLevel(nbTabs)+"{\n";
+		var result = "\n"+tabLevel(nbTabs, true)+"{\n";
 		nbTabs++;
 		for (var key of Object.keys(obj)) {
 			if (obj[key].constructor === Array) {
-				result += tabLevel(nbTabs)+key+"\n"+tabLevel(nbTabs)+"{\n"+obj[key].map(x => tabLevel(nbTabs+1)+x+"\n").join("");
-				result += tabLevel(nbTabs)+"}\n";
+				result += tabLevel(nbTabs, true)+key+"\n"+tabLevel(nbTabs, true)+"{\n"+obj[key].map(x => tabLevel(nbTabs+1, true)+x+"\n").join("");
+				result += tabLevel(nbTabs, true)+"}\n";
 			} else if (typeof obj[key] === "object" && obj[key] !== null) {
-				result += tabLevel(nbTabs)+key+deserializeObject(obj[key])+"\n";
+				result += tabLevel(nbTabs, true)+key+deserializeObject(obj[key])+"\n";
 			} else {
-				result += tabLevel(nbTabs)+key+": "+obj[key]+"\n";
+				result += tabLevel(nbTabs, true)+key+": "+obj[key]+"\n";
 			}
 		}
 		nbTabs--;
-		result += tabLevel(nbTabs)+"}";
+		result += tabLevel(nbTabs, true)+"}";
 		return result;
 	}
 

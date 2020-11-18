@@ -17,8 +17,7 @@
 
 "use strict";
 
-
-function unescapeString(content) {
+function unescapeString(content, parseOpyEscapes=false) {
 	if (content.length < 2) {
 		error("Expected a string, but got '"+content+"'");
 	}
@@ -47,13 +46,55 @@ function unescapeString(content) {
 				result += "\n";
 			} else if (content[i+1] === "r") {
 				//do nothing. remove those pesky carriage returns
+			} else if (content[i+1] === "x") {
+				if (i >= content.length-1-2) {
+					error("Expected 2 hexadecimal digits after '\\x'");
+				}
+				var hexDigits = content.slice(i+2, i+2+2);
+				if (!hexDigits.match(/[A-Fa-f0-9]{2}/)) {
+					error("Expected 2 hexadecimal digits after '\\x', but found '"+hexDigits+"'");
+				}
+
+				result += String.fromCharCode(parseInt(hexDigits, 16));
+				i += 2;
+
+			} else if (content[i+1] === "u") {
+				if (i >= content.length-1-4) {
+					error("Expected 4 hexadecimal digits after '\\u'");
+				}
+				var hexDigits = content.slice(i+2, i+2+4);
+				if (!hexDigits.match(/[A-Fa-f0-9]{4}/)) {
+					error("Expected 4 hexadecimal digits after '\\u', but found '"+hexDigits+"'");
+				}
+
+				result += String.fromCodePoint(parseInt(hexDigits, 16));
+				i += 4;
+			} else if (content[i+1] === "&") {
+				var j = i+2;
+				var foundEnd = false;
+				for (; j < content.length; j++) {
+					if (content[j] === ";") {
+						foundEnd = true;
+						break;
+					} else if (!content[j].match(/\w/)) {
+						error("Invalid character '"+content[j]+"' in a string entity");
+					}
+				}
+				if (!foundEnd) {
+					error("Expected ';' to terminate the entity, but found end of string");
+				}
+				var entityName = content.slice(i+2, j);
+				if (!(entityName in opyStringEntities)) {
+					error("Unknown string entity '"+entityName+"'");
+				}
+				result += String.fromCodePoint(opyStringEntities[entityName].codepoint);
+				i += entityName.length+1;
+			
 			} else {
 				error("Unknown escape sequence '\\"+content[i+1]+"'");
 			}
 			i++;
-		} /*else if (content[i] === "\n") {
-			error("Strings containing newlines cannot be pasted in the workshop");
-		} */else {
+		} else {
 			result += content[i];
 		}
 	}
@@ -64,3 +105,28 @@ function escapeString(content) {
 	return '"'+content.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, "\\n")+'"';
 }
 
+function getUtf8Length(str){
+	//returns the char length of an utf8 string
+	var result = 0;
+	for (var i = 0; i < str.length; i++) {
+		var code = str.charCodeAt(i);
+		if (code >= 0xDC00 && code <= 0xDFFF) {
+			//skip as it is a surrogate pair
+			continue;
+		}
+		result++;
+	}
+	return result;
+}
+
+function getUtf8ByteLength(str){
+	// returns the byte length of an utf8 string
+	var s = str.length;
+	for (var i=str.length-1; i>=0; i--) {
+		var code = str.charCodeAt(i);
+		if (code > 0x7f && code <= 0x7ff) s++;
+		else if (code > 0x7ff && code <= 0xffff) s+=2;
+		if (code >= 0xDC00 && code <= 0xDFFF) i--; //trail surrogate
+	}
+	return s;
+}

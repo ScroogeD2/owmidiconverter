@@ -25,7 +25,7 @@ const customGameSettingsSchema =
             "description": {
                 "guid": "00000001007F",
                 "values": "__string__",
-                "maxBytes": 512,
+                "maxChars": 512,
                 "en-US": "Description",
                 "de-DE": "Beschreibung",
                 "es-ES": "Descripción",
@@ -357,6 +357,7 @@ const customGameSettingsSchema =
                 "values": "__boolYesNo__",
                 "default": "no",
                 "guid": "00000000F25B",
+                "description": "Whether to allow players in 'While you wait'.",
                 "en-US": "Allow Players Who Are In Queue",
                 "de-DE": "Spieler in der Spielsuche zulassen",
                 "es-ES": "Permitir jugadores que estén en cola",
@@ -564,6 +565,25 @@ const customGameSettingsSchema =
                 "ru-RU": "Выбор дата-центра",
                 "zh-CN": "数据中心设置",
                 "zh-TW": "資料中心設定"
+            },
+            "minimumLatencyInNs": {
+                "values": "__int__",
+                "min": 0,
+                "max": 150000000,
+                "default": 0,
+                "guid": "00000001249D",
+                "en-US": "Minimum Latency milliseconds",
+                "de-DE": "Minimale Latenz Millisekunden",
+                "es-ES": "Latencia mínima milisegundos",
+                "es-MX": "Latencia mínima milisegundos",
+                "fr-FR": "Latence minimum millisecondes",
+                "it-IT": "Latenza minima millisecondi",
+                "ja-JP": "最小遅延（ミリ秒）",
+                "ko-KR": "최소 지연 시간 milliseconds",
+                "pl-PL": "Minimalne opóźnienie millisekundy",
+                "pt-BR": "Latência mínima ms",
+                "ru-RU": "Минимальная задержка в миллисекундах",
+                "zh-CN": "最低延迟（毫秒）"
             }
         },
         "guid": "000000010031",
@@ -2443,7 +2463,7 @@ const customGameSettingsSchema =
                         "es-ES": "Repulsión del balón de fútbol",
                         "es-MX": "Escala de derribos del balón de fútbol",
                         "fr-FR": "Recul du ballon de football",
-                        "it-IT": "Pallone - Intensità di respinta",
+                        "it-IT": "Intensità di respinta palla",
                         "ja-JP": "サッカーボール ノックバック・スカラー",
                         "ko-KR": "축구공 밀쳐내는 힘 조정",
                         "pl-PL": "Skalowanie odrzucenia piłki nożnej",
@@ -2517,7 +2537,7 @@ const customGameSettingsSchema =
                         "es-ES": "Tiempo de aumento de la cantidad de balones segundos",
                         "es-MX": "Periodo de aumento de la cantidad de balones segundos",
                         "fr-FR": "Période d’augmentation du nombre de ballons secondes",
-                        "it-IT": "Periodo Incremento Conteggio Palla secondi",
+                        "it-IT": "Periodo di incremento numero palle secondi",
                         "ja-JP": "ボール数の増加時間（秒）",
                         "ko-KR": "공 개수 증가 주기 초",
                         "pl-PL": "Interwal zwiększenia liczby piłek Sekundy",
@@ -2537,13 +2557,13 @@ const customGameSettingsSchema =
                         "es-ES": "Tiempo de aparición de balón adicional segundos",
                         "es-MX": "Periodo de aparición del balón segundos",
                         "fr-FR": "Période d’apparition du ballon supplémentaire secondes",
-                        "it-IT": "Periodo Comparsa Palla Bonus secondi",
+                        "it-IT": "Periodo di comparsa palla bonus secondi",
                         "ja-JP": "ボーナスボールの発生時間（秒）",
                         "ko-KR": "보너스 공 생성 주기 초",
                         "pl-PL": "Interwał ekstra piłek w grze Sekundy",
                         "pt-BR": "Período de Ressurgimento da Bola Extra Segundos",
                         "ru-RU": "Частота появления бонусных мячей в секундах",
-                        "zh-CN": "奖分球刷新间隔（秒）",
+                        "zh-CN": "奖励球刷新间隔（秒）",
                         "zh-TW": "獎勵球重生間隔（秒）"
                     },
                     "bonusBallValue": {
@@ -2557,13 +2577,13 @@ const customGameSettingsSchema =
                         "es-ES": "Valor del balón adicional",
                         "es-MX": "Valor del balón adicional",
                         "fr-FR": "Valeur du ballon supplémentaire",
-                        "it-IT": "Valore Palla Bonus",
+                        "it-IT": "Valore palla bonus",
                         "ja-JP": "ボーナスボールの値",
                         "ko-KR": "보너스 공 점수",
                         "pl-PL": "Wartość ekstra piłki",
                         "pt-BR": "Valor da Bola Extra",
                         "ru-RU": "Количество очков за бонусный мяч",
-                        "zh-CN": "奖分球分值",
+                        "zh-CN": "奖励球分值",
                         "zh-TW": "獎勵球分數"
                     },
                     "initialBallCount": {
@@ -2577,7 +2597,7 @@ const customGameSettingsSchema =
                         "es-ES": "Cantidad inicial de balones",
                         "es-MX": "Cantidad inicial de balones",
                         "fr-FR": "Nombre de ballons initial",
-                        "it-IT": "Conteggio Palla Iniziale",
+                        "it-IT": "Numero di palle iniziale",
                         "ja-JP": "ボールの初期値",
                         "ko-KR": "최초 공 개수",
                         "pl-PL": "Wstępna liczba piłek",
@@ -2597,7 +2617,7 @@ const customGameSettingsSchema =
                         "es-ES": "Cantidad máxima de balones",
                         "es-MX": "Cantidad máxima de balones",
                         "fr-FR": "Nombre de ballons maximum",
-                        "it-IT": "Conteggio Palla Massimo",
+                        "it-IT": "Massimo numero di palle",
                         "ja-JP": "ボールの最大数",
                         "ko-KR": "최대 공 개수",
                         "pl-PL": "Maksymalna liczba piłek",
@@ -2617,13 +2637,13 @@ const customGameSettingsSchema =
                         "es-ES": "Cantidad máxima de balones adicionales",
                         "es-MX": "Cantidad máxima de balones adicionales",
                         "fr-FR": "Nombre de ballons supplémentaires maximum",
-                        "it-IT": "Conteggio Palla Bonus Massimo",
+                        "it-IT": "Massimo numero di palle bonus",
                         "ja-JP": "ボーナスボールの最大数",
                         "ko-KR": "최대 보너스 공 개수",
                         "pl-PL": "Maksymalna liczba ekstra piłek",
                         "pt-BR": "Número Máximo de Bolas Extras",
                         "ru-RU": "Максимальное число бонусных мячей",
-                        "zh-CN": "最大奖分球数量",
+                        "zh-CN": "最大奖励球数量",
                         "zh-TW": "最大獎勵球數"
                     }
                 }
@@ -2963,6 +2983,7 @@ const customGameSettingsSchema =
                     "default": 100,
                     "include": [
                         "ashe",
+                        "baptiste",
                         "bastion",
                         "doomfist",
                         "genji",
@@ -2994,6 +3015,7 @@ const customGameSettingsSchema =
                     "default": "off",
                     "include": [
                         "ashe",
+                        "baptiste",
                         "bastion",
                         "doomfist",
                         "genji",
@@ -4877,7 +4899,7 @@ const customGameSettingsSchema =
 }
 //end-json
 
-const availableLanguages = ["de-DE", "en-US", "es-ES", "es-MX", "fr-FR", "it-IT", "ja-JP", "ko-KR", "pl-PL", "pt-BR", "ru-RU", "zh-CN", "zh-TW"];
+const availableLanguages = ["de-DE", "es-ES", "es-MX", "fr-FR", "it-IT", "ja-JP", "ko-KR", "pl-PL", "pt-BR", "ru-RU", "zh-CN", "zh-TW", "en-US"];
 
 //Resolve guids for the max team players
 for (var key of Object.keys(customGameSettingsSchema.lobby.values.team1Slots)) {
@@ -4941,23 +4963,22 @@ for (var hero of Object.keys(heroKw)) {
                 "enablePassive", 
                 "enableUlt", "ultGen%", "combatUltGen%", "passiveUltGen%"
             ].includes(key)) {
-                for (var key2 of Object.keys(heroValue)) {
-                    if (availableLanguages.includes(key2)) {
+                for (var lang of availableLanguages) {
+                    var key2 = (lang in heroValue ? lang : "en-US")
+    
+                    if (["secondaryFireCooldown%", "enableSecondaryFire", "secondaryFireMaximumTime%", "secondaryFireRechargeRate%"].includes(key)) {
+                        heroValue[lang] = heroValue[key2].replace("%1$s", heroKw[hero].secondaryFire[lang] || heroKw[hero].secondaryFire["en-US"])
 
-                        if (["secondaryFireCooldown%", "enableSecondaryFire", "secondaryFireMaximumTime%", "secondaryFireRechargeRate%"].includes(key)) {
-                            heroValue[key2] = heroValue[key2].replace("%1$s", heroKw[hero].secondaryFire[key2])
-
-                        } else if (["ability3Cooldown%", "enableAbility3"].includes(key)) {
-                            heroValue[key2] = heroValue[key2].replace("%1$s", heroKw[hero].ability3[key2])
-                        } else if (["ability2Cooldown%", "enableAbility2"].includes(key)) {
-                            heroValue[key2] = heroValue[key2].replace("%1$s", heroKw[hero].ability2[key2])
-                        } else if (["ability1Cooldown%", "enableAbility1"].includes(key)) {
-                            heroValue[key2] = heroValue[key2].replace("%1$s", heroKw[hero].ability1[key2])
-                        } else if (["enablePassive"].includes(key)) {
-                            heroValue[key2] = heroValue[key2].replace("%1$s", heroKw[hero].passive[key2])
-                        } else if (["enableUlt", "ultGen%", "combatUltGen%", "passiveUltGen%"].includes(key)) {
-                            heroValue[key2] = heroValue[key2]+" "+heroKw[hero].ultimate[key2]
-                        }
+                    } else if (["ability3Cooldown%", "enableAbility3"].includes(key)) {
+                        heroValue[lang] = heroValue[key2].replace("%1$s", heroKw[hero].ability3[lang] || heroKw[hero].ability3["en-US"])
+                    } else if (["ability2Cooldown%", "enableAbility2"].includes(key)) {
+                        heroValue[lang] = heroValue[key2].replace("%1$s", heroKw[hero].ability2[lang] || heroKw[hero].ability2["en-US"])
+                    } else if (["ability1Cooldown%", "enableAbility1"].includes(key)) {
+                        heroValue[lang] = heroValue[key2].replace("%1$s", heroKw[hero].ability1[lang] || heroKw[hero].ability1["en-US"])
+                    } else if (["enablePassive"].includes(key)) {
+                        heroValue[lang] = heroValue[key2].replace("%1$s", heroKw[hero].passive[lang] || heroKw[hero].passive["en-US"])
+                    } else if (["enableUlt", "ultGen%", "combatUltGen%", "passiveUltGen%"].includes(key)) {
+                        heroValue[lang] = heroValue[key2]+" "+(heroKw[hero].ultimate[lang] || heroKw[hero].ultimate["en-US"])
                     }
                 }
             }
