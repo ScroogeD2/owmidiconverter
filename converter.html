@@ -44,13 +44,12 @@
             <input class="textInput" type="text" id="voicesInput" value="6">
 
             <div class="tooltipWrapper">
-                <div class="tooltip">(CURRENTLY BROKEN) Language:
-                    <span class="tooltipText">CURRENTLY BROKEN DUE TO NEW UPDATE, ONLY ENGLISH WORKS. WILL BE FIXED SOON.
-                        Language of the generated workshop script. 
+                <div class="tooltip">Language:
+                    <span class="tooltipText">Language of the generated workshop script. 
                         Choose the same language as your game's text language, otherwise the script can't be imported.</span>
                 </div>
             </div>
-            <select class="dropdownInput" id="languageInput" disabled>
+            <select class="dropdownInput" id="languageInput">
                 <option selected value="en-US">English</option>
                 <option value="es-ES">Español (EU)</option>
                 <option value="es-MX">Español (AL)</option>
@@ -139,7 +138,9 @@
     <!-- Import OverPy for language translations -->
     <script src="overpy/utils/other.js"></script>
 
+    <script src="overpy/data/opy/stringEntities.js"></script>
     <script src="overpy/data/opy/constants.js"></script>
+    <script src="overpy/data/opy/modules.js"></script>
     <script src="overpy/data/opy/internalFunctions.js"></script>
     <script src="overpy/data/opy/functions.js"></script>
     <script src="overpy/data/opy/keywords.js"></script>
@@ -182,6 +183,7 @@
     <script src="overpy/compiler/functions/__arraySlice__.js"></script>
     <script src="overpy/compiler/functions/__assignTo__.js"></script>
     <script src="overpy/compiler/functions/__button__.js"></script>
+    <script src="overpy/compiler/functions/__color__.js"></script>
     <script src="overpy/compiler/functions/__del__.js"></script>
     <script src="overpy/compiler/functions/__dict__.js"></script>
     <script src="overpy/compiler/functions/__distanceTo__.js"></script>
@@ -209,35 +211,76 @@
     <script src="overpy/compiler/functions/__modulo__.js"></script>
     <script src="overpy/compiler/functions/__multiply__.js"></script>
     <script src="overpy/compiler/functions/__negate__.js"></script>
+    <script src="overpy/compiler/functions/__number__.js"></script>
     <script src="overpy/compiler/functions/__not__.js"></script>
     <script src="overpy/compiler/functions/__or__.js"></script>
     <script src="overpy/compiler/functions/__raiseToPower__.js"></script>
     <script src="overpy/compiler/functions/__remove__.js"></script>
+    <script src="overpy/compiler/functions/__reverse__.js"></script>
     <script src="overpy/compiler/functions/__rule__.js"></script>
     <script src="overpy/compiler/functions/__skip__.js"></script>
     <script src="overpy/compiler/functions/__subtract__.js"></script>
     <script src="overpy/compiler/functions/__switch__.js"></script>
+    <script src="overpy/compiler/functions/__team__.js"></script>
     <script src="overpy/compiler/functions/__valueInArray__.js"></script>
+    <script src="overpy/compiler/functions/__wait__.js"></script>
     <script src="overpy/compiler/functions/__while__.js"></script>
     <script src="overpy/compiler/functions/__xComponentOf__.js"></script>
     <script src="overpy/compiler/functions/__yComponentOf__.js"></script>
     <script src="overpy/compiler/functions/__zComponentOf__.js"></script>
+    <script src="overpy/compiler/functions/_&addToScore.js"></script>
+    <script src="overpy/compiler/functions/_&setStatusEffect.js"></script>
+    <script src="overpy/compiler/functions/_&setUltCharge.js"></script>
+    <script src="overpy/compiler/functions/abs.js"></script>
+    <script src="overpy/compiler/functions/acos.js"></script>
+    <script src="overpy/compiler/functions/acosDeg.js"></script>
+    <script src="overpy/compiler/functions/addToTeamScore.js"></script>
     <script src="overpy/compiler/functions/all.js"></script>
     <script src="overpy/compiler/functions/any.js"></script>
+    <script src="overpy/compiler/functions/asin.js"></script>
+    <script src="overpy/compiler/functions/asinDeg.js"></script>
+    <script src="overpy/compiler/functions/atan2.js"></script>
+    <script src="overpy/compiler/functions/atan2Deg.js"></script>
     <script src="overpy/compiler/functions/break.js"></script>
+    <script src="overpy/compiler/functions/ceil.js"></script>
     <script src="overpy/compiler/functions/continue.js"></script>
+    <script src="overpy/compiler/functions/cos.js"></script>
+    <script src="overpy/compiler/functions/cosDeg.js"></script>
     <script src="overpy/compiler/functions/createBeam.js"></script>
+    <script src="overpy/compiler/functions/createWorkshopSetting.js"></script>
+    <script src="overpy/compiler/functions/crossProduct.js"></script>
+    <script src="overpy/compiler/functions/directionTowards.js"></script>
     <script src="overpy/compiler/functions/disableInspector.js"></script>
+    <script src="overpy/compiler/functions/distance.js"></script>
+    <script src="overpy/compiler/functions/dotProduct.js"></script>
     <script src="overpy/compiler/functions/enableInspector.js"></script>
+    <script src="overpy/compiler/functions/eventPlayer.js"></script>
+    <script src="overpy/compiler/functions/floor.js"></script>
+    <script src="overpy/compiler/functions/getAllPlayers.js"></script>
+    <script src="overpy/compiler/functions/getOppositeTeam.js"></script>
+    <script src="overpy/compiler/functions/len.js"></script>
+    <script src="overpy/compiler/functions/lineIntersectsSphere.js"></script>
+    <script src="overpy/compiler/functions/log.js"></script>
+    <script src="overpy/compiler/functions/max.js"></script>
+    <script src="overpy/compiler/functions/min.js"></script>
+    <script src="overpy/compiler/functions/normalize.js"></script>
     <script src="overpy/compiler/functions/print.js"></script>
+    <script src="overpy/compiler/functions/printLog.js"></script>
+    <script src="overpy/compiler/functions/round.js"></script>
+    <script src="overpy/compiler/functions/sin.js"></script>
+    <script src="overpy/compiler/functions/sinDeg.js"></script>
     <script src="overpy/compiler/functions/sorted.js"></script>
+    <script src="overpy/compiler/functions/sqrt.js"></script>
+    <script src="overpy/compiler/functions/tan.js"></script>
+    <script src="overpy/compiler/functions/tanDeg.js"></script>
     <script src="overpy/compiler/functions/vect.js"></script>
-    
+    <script src="overpy/compiler/functions/vectorTowards.js"></script>
     <script src="overpy/compiler/tokenizer.js"></script>
     <script src="overpy/compiler/astParser.js"></script>
     <script src="overpy/compiler/astToWorkshop.js"></script>
     <script src="overpy/compiler/parser.js"></script>
     <script src="overpy/compiler/compiler.js"></script>
+
     <script src="overpy/data/localizedStrings.js"></script>
     <!-- End of OverPy imports -->
     
