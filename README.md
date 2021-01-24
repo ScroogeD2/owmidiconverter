@@ -58,14 +58,14 @@ See [issues on Github.](https://github.com/ScroogeD2/owmidiconverter/issues)
 
 # Workshop codes
 - Moonlight sonata movement 3: DYAV0  
-- Fantaisie impromptu: 2H6EA  
-- Pokemon Red/Blue trainer battle music: W6GKZC  
-- Pokemon Gold/Silver champion battle music: J4W71  
-- Pokemon Red/Blue gym leader music: 3AZJS  
-- Pokemon Gold/Silver trainer battle music: ZKMPY  
-- Pokemon Red/Blue wild battle music: CQMJS  
-- Pokemon Red/Blue team rocket hideout music: ZNDHG  
-- Pokemon Red/Blue champion battle music: 7XAAR  
+- Fantaisie impromptu: CAVXP  
+- Pokemon Red/Blue trainer battle music: KJJGK  
+- Pokemon Gold/Silver champion battle music: CCAVB  
+- Pokemon Red/Blue gym leader music: RNV2Z  
+- Pokemon Gold/Silver trainer battle music: 6PG2Z  
+- Pokemon Red/Blue wild battle music: Q3TGH  
+- Pokemon Red/Blue team rocket hideout music: TK1XB  
+- Pokemon Red/Blue champion battle music: RT3PE  
 
 All Pokemon Red/Blue themes were transcribed by Mark Benis.
 
