@@ -95,6 +95,11 @@ var nbElements;
 //For the weird behavior where element count goes up by 1 for every 2 hero literals in the parameters of an action argument.
 var nbHeroesInValue;
 
+//The extensions that are activated in the current gamemode.
+var activatedExtensions;
+//The amount of available extension points.
+var availableExtensionPoints;
+
 //Decompilation variables
 
 
@@ -154,6 +159,8 @@ function resetGlobalVariables(language) {
 	replacementFor1 = null;
 	replacementForTeam1 = null;
 	nbElements = 0;
+	activatedExtensions = [];
+	availableExtensionPoints = 0;
 }
 
 //Other constants
@@ -221,7 +228,10 @@ function vect(x,y,z) {
             return "vect("+this.x+","+this.y+","+this.z+")";
         }
     });
-}`;
+}
+
+var Map = {${Object.keys(mapKw).map(x => camelCaseToUpperCase(x) + ":'Map."+camelCaseToUpperCase(x)+"'").join(",")}}
+`;
 
 const builtInJsFunctionsNbLines = builtInJsFunctions.split("\n").length;
 

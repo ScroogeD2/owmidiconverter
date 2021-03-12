@@ -17,7 +17,7 @@
 
 "use strict";
 
-astParsingFunctions.createBeam = function(content) {
+astParsingFunctions.createEffect = function(content) {
 
     if (constantValues[content.args[1].type][content.args[1].name].extension && !activatedExtensions.includes(constantValues[content.args[1].type][content.args[1].name].extension)) {
         error("You must activate the extension '"+constantValues[content.args[1].type][content.args[1].name].extension+"' to use '"+content.args[1].type+"."+content.args[1].name+"'");

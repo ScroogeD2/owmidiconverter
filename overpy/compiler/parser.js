@@ -140,7 +140,7 @@ function parseLines(lines) {
                     error("Malformatted 'rule' declaration");
                 }
                 instructionRuleAttributes = {};
-                instructionRuleAttributes.name = unescapeString(lineMembers[0][1].text);
+                instructionRuleAttributes.name = unescapeString(lineMembers[0][1].text, true);
 
             } else if (funcName === "__enum__") {
                 if (lineMembers[0].length !== 2) {
@@ -227,7 +227,12 @@ function parseLines(lines) {
                         if (typeof lastIntValue === "number") {
                             enumMembers[args[0].name][childrenLines[k].tokens[0]] = getAstForNumber(lastIntValue);
                             lastIntValue++;
+                        } else if (lastIntValue.name === "__negate__" && lastIntValue.args[0].name === "__number__") {
+                            lastIntValue = -lastIntValue.args[0].args[0].numValue+1;
+                            enumMembers[args[0].name][childrenLines[k].tokens[0]] = getAstForNumber(lastIntValue);
+                            lastIntValue++;
                         } else {
+                            console.log(lastIntValue)
                             error("Cannot auto-increment enum member, as last value was "+functionNameToString(lastIntValue));
                         }
                     } else {
@@ -237,7 +242,9 @@ function parseLines(lines) {
                         } else {
 
                             //Check that there are only constant functions, as to not mislead the programmer; enums are just macros in disguise
-                            astContainsFunctions(enumValue, notConstantFunctions, true);
+                            if (astContainsFunctions(enumValue, notConstantFunctions, false)) {
+                                warn("w_enum_constant", "The value of "+args[0].name+"."+childrenLines[k].tokens[0]+" seems to not be constant; it will be inlined and not stored.")
+                            }
 
                             lastIntValue = enumValue;
                         }
@@ -579,7 +586,7 @@ function parse(content, kwargs={}) {
 		var string = "";
 		for (var i = content.length-1; i >= 0; i--) {
 			if (content[i].text.startsWith('"') || content[i].text.startsWith("'")) {
-				string = unescapeString(content[i].text)+string;
+				string = unescapeString(content[i].text, true)+string;
 
 			} else {
 				if (i === 0) {
@@ -797,6 +804,10 @@ function parseMember(object, member) {
 
 	debug("Parsing member '"+dispTokens(member)+"' of object '"+dispTokens(object)+"'");
 	
+    if (member.length === 0) {
+        error("Expected tokens after '.'");
+    }
+
 	var name = member[0].text;
 	//debug("name = "+name);
 	var args = null;
@@ -854,6 +865,18 @@ function parseMember(object, member) {
                     return getAstForNumber(3.141592653589793);
                 } else if (name === "E") {
                     return getAstForE();
+                } else if (name === "INFINITY") {
+                    return getAstForNumber(9999999999999999999);
+                } else if (name === "SPHERE_HORIZONTAL_RADIUS_MULT") {
+                    return getAstForNumber(0.984724);
+                } else if (name === "SPHERE_VERTICAL_RADIUS_MULT") {
+                    return getAstForNumber(0.998959);
+                } else if (name === "INNER_RING_RADIUS_MULT") {
+                    return getAstForNumber(0.9415);
+                } else if (name === "OUTER_RING_RADIUS_MULT") {
+                    return getAstForNumber(0.94965);
+                } else if (name === "RING_EXPLOSION_RADIUS_MULT") {
+                    return getAstForNumber(0.48);
                 } else {
                     error("Unhandled member 'math."+name+"'");
                 }
@@ -879,7 +902,7 @@ function parseMember(object, member) {
 
 	} else {
 	
-		if (["append", "concat", "exclude", "index", "remove"].includes(name)) {
+		if (["append", "concat", "exclude", "index", "remove", "split", "strIndex", "charAt"].includes(name)) {
             if (args.length !== 1) {
                 error("Function '"+name+"' takes 1 argument, received "+args.length);
             }
@@ -889,6 +912,9 @@ function parseMember(object, member) {
                 "exclude": "__removeFromArray__",
                 "index": "__indexOfArrayValue__",
                 "remove": "__remove__",
+                "split": "__strSplit__",
+                "strIndex": "__strIndex__",
+                "charAt": "__strCharAt__",
             };
 
             return new Ast(funcToInternalFuncMap[name], [parse(object), parse(args[0])])
@@ -924,6 +950,12 @@ function parseMember(object, member) {
 			} else {
 				error("Unhandled member 'random."+name+"'");
 			}
+			
+		} else if (name === "replace") {
+            if (args.length !== 2) {
+                error("Function 'replace' takes 2 arguments, received "+args.length);
+            }
+			return new Ast("__strReplace__", [parse(object), parse(args[0]), parse(args[1])]);
 			
 		} else if (name === "reverse") {
             if (args.length !== 0) {

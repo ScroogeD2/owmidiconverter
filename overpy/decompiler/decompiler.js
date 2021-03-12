@@ -122,7 +122,14 @@ function decompileAllRules(content, language="en-US") {
 	}
 	result += variableDeclarations + subroutineDeclarations;
 
-	result += astRulesToOpy(astRules);
+	var opyRules = astRulesToOpy(astRules)
+	if (activatedExtensions.length > 0) {
+		activatedExtensions = [...new Set(activatedExtensions)]
+		result += "#Activated extensions\n\n" + activatedExtensions.map(x => "#!extension "+x+"\n").join("")+"\n\n";
+	}
+
+	result += opyRules;
+	
 		
 	return result;
 	
@@ -180,8 +187,12 @@ function decompileCustomGameSettings(content) {
 		var opyCategory = topy(category, customGameSettingsSchema);
 		result[opyCategory] = {};
 		if (opyCategory === "main" || opyCategory === "lobby") {
-			result[opyCategory] = decompileCustomGameSettingsDict(Object.keys(serialized[category]), customGameSettingsSchema[opyCategory].values)
+			result[opyCategory] = decompileCustomGameSettingsDict(Object.keys(serialized[category]), customGameSettingsSchema[opyCategory].values);
 
+		} else if (opyCategory === "extensions") {
+			activatedExtensions = Object.keys(serialized[opyCategory]).map(ext => topy(ext, customGameSettingsSchema.extensions.values));
+			delete result[opyCategory];
+		
 		} else if (opyCategory === "gamemodes") {
 			for (var gamemode of Object.keys(serialized[category])) {
 				var isCurrentGamemodeDisabled = false;
@@ -267,15 +278,26 @@ function decompileCustomGameSettings(content) {
 				var value = workshopSettings.substring(i, nextNewlineIndex).trim();
 				if (isNumber(value)) {
 					value = parseFloat(value);
+				} else if (value.startsWith("[") && value.endsWith("]")) {
+					//workshop enum
+					value = [parseFloat(value.substring(1), value.substring(value.length-1))]
+				} else if (/e[\+\-]\d+:F3/.test(value)) {
+					//Copy bug for too high/low numbers
+					value = parseFloat("1"+value.substring(0, value.indexOf(":")));
 				} else {
 					//It should be a boolean: translate On/Off.
-					value = topy(value, customGameSettingsKw);
-					if (value === "__on__") {
-						value = true;
-					} else if (value === "__off__") {
-						value = false;
-					} else {
-						error("Unhandled value '"+value+"'");
+					try {
+						value = topy(value, customGameSettingsKw);
+						if (value === "__on__") {
+							value = true;
+						} else if (value === "__off__") {
+							value = false;
+						} else {
+							error("Unhandled value '"+value+"'");
+						}
+					} catch (e) {
+						//Maybe a hero?
+						value = topy(value, heroKw);
 					}
 				}
 				i = nextNewlineIndex+1;

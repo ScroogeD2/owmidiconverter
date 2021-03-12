@@ -30,10 +30,10 @@ function astRulesToOpy(rules) {
 
         if (rule.ruleAttributes.event === "__subroutine__") {
             decompiledRule += "def "+rule.ruleAttributes.subroutineName+"():\n";
-            decompiledRuleAttributes += tabLevel(nbTabs)+"@Name "+escapeString(rule.ruleAttributes.name)+"\n";
+            decompiledRuleAttributes += tabLevel(nbTabs)+"@Name "+escapeString(rule.ruleAttributes.name, false)+"\n";
         } else {
                 
-            decompiledRule += "rule "+escapeString(rule.ruleAttributes.name)+":\n";
+            decompiledRule += "rule "+escapeString(rule.ruleAttributes.name, false)+":\n";
             
             //Decompile the rule attributes
             if (rule.ruleAttributes.event !== "global") {
@@ -357,6 +357,11 @@ function astActionsToOpy(actions) {
             if (!(actions[i].name in funcKw)) {
                 error("Unregistered function '"+actions[i].name+"'");
             }
+
+            if (["createEffect", "createBeam", "playEffect"].includes(actions[i].name) && constantValues[actions[i].args[1].type][actions[i].args[1].name].extension) {
+                activatedExtensions.push(constantValues[actions[i].args[1].type][actions[i].args[1].name].extension)
+                //console.log(activatedExtensions);
+            }
             
             if (actions[i].name.startsWith("_&")) {
                 var op1 = astToOpy(actions[i].args[0]);
@@ -403,7 +408,7 @@ function astToOpy(content) {
     debug("Parsing AST of '"+content.name+"'");
 
     if (content.type === "StringLiteral") {
-        return escapeString(content.name);
+        return escapeString(content.name, false);
     }
 
     if (content.type === "GlobalVariable" || content.type === "PlayerVariable" || content.type === "Subroutine") {
@@ -530,6 +535,10 @@ function astToOpy(content) {
     if ([
         "__arraySlice__",
         "__substring__",
+        "__strSplit__",
+        "__strReplace__",
+        "__strIndex__",
+        "__strCharAt__",
         "__firstOf__",
         "__lastOf__",
         "__valueInArray__",
@@ -547,6 +556,18 @@ function astToOpy(content) {
         }
         if (content.name === "__substring__") {
             return result+".substring("+astToOpy(content.args[1])+", "+astToOpy(content.args[2])+")";
+        }
+        if (content.name === "__strSplit__") {
+            return result+".split("+astToOpy(content.args[1])+")";
+        }
+        if (content.name === "__strIndex__") {
+            return result+".strIndex("+astToOpy(content.args[1])+")";
+        }
+        if (content.name === "__strReplace__") {
+            return result+".replace("+astToOpy(content.args[1])+", "+astToOpy(content.args[2])+")";
+        }
+        if (content.name === "__strCharAt__") {
+            return result+".charAt("+astToOpy(content.args[1])+")";
         }
         if (content.name === "__firstOf__") {
             return result+"[0]";
@@ -699,12 +720,11 @@ function astToOpy(content) {
         var result = "";
         if (content.name === "__localizedString__") {
             result += "l";
-            result += escapeString(topy(content.args[0].name, stringKw))
+            result += escapeString(topy(content.args[0].name, stringKw), false)
         } else {
-            result += escapeString(content.args[0].name);
+            result += escapeString(content.args[0].name, false);
         }
         if (formatArgs.length > 0) {
-            console.log(formatArgs);
             result += ".format("+formatArgs.map(x => x === undefined ? "null" : astToOpy(x)).join(", ")+")";
         }
         return result;
