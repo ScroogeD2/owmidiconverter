@@ -592,7 +592,7 @@ const customGameSettingsSchema =
                         "pl-PL": "Współczynnik skalowania czasu oczekiwania na odrodzenie",
                         "pt-BR": "Tempo escalar de ressurgimento",
                         "ru-RU": "Время возрождения",
-                        "zh-CN": "复活时间",
+                        "zh-CN": "复生时间",
                         "zh-TW": "重生時間"
                     },
                     "disabledMaps": {
