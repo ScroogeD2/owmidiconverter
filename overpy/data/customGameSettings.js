@@ -248,7 +248,7 @@ const customGameSettingsSchema =
                         "pl-PL": "Rozpoczęcie gry",
                         "pt-BR": "Iniciar modo de jogo",
                         "ru-RU": "Начало матча в режиме",
-                        "zh-CN": "比赛模式开始",
+                        "zh-CN": "游戏模式开始",
                         "zh-TW": "開始遊戲模式"
                     },
                     "healthPackRespawnTime%": {
