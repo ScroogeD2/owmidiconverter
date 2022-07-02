@@ -82,7 +82,7 @@ variables
         39: finalCompressedElementLength
         40: I
         41: J
-        42: K
+        42: L
 
     player:
         1: playNote
@@ -452,7 +452,7 @@ rule("Decompress array")
         Global.decompressedArray = Empty Array;
         Global.decompressedArray[0] = Empty Array;
         "Current decompressedArray index being written to (max of 1000 elements per index)"
-        Global.K = 0;
+        Global.L = 0;
         "Array for saving individual digits of the element being decompressed"
         Global.numberArray = Empty Array;
         Global.compressedArrayLength = Global.maxArraySize * (Count Of(Global.compressedArray) - 1) + Count Of(Last Of(
@@ -473,10 +473,10 @@ rule("Decompress array")
                     Global.decompressedValue += First Of(Global.numberArray) * 10 ^ (Global.songDataElementLength - 1 - Global.J);
                     Modify Global Variable(numberArray, Remove From Array By Index, 0);
                 End;
-                Modify Global Variable At Index(decompressedArray, Global.K, Append To Array, Global.decompressedValue);
-                If(Count Of(Global.decompressedArray[Global.K]) >= Global.maxArraySize);
-                    Global.K += 1;
-                    Global.decompressedArray[Global.K] = Empty Array;
+                Modify Global Variable At Index(decompressedArray, Global.L, Append To Array, Global.decompressedValue);
+                If(Count Of(Global.decompressedArray[Global.L]) >= Global.maxArraySize);
+                    Global.L += 1;
+                    Global.decompressedArray[Global.L] = Empty Array;
                 End;
             End;
             "Wait a frame every 25th element to avoid high server load"
