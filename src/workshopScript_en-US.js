@@ -371,7 +371,7 @@ rule("Play note")
         Teleport(Event Player, Event Player.currentKeyPos);
         Wait(0.032, Ignore Condition);
         Start Holding Button(Event Player, Button(Primary Fire));
-        Wait(0.032, Ignore Condition);
+        Wait(0.064, Ignore Condition);
         Stop Holding Button(Event Player, Button(Primary Fire));
         Event Player.playNote = False;
     }
