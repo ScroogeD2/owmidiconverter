@@ -1,4 +1,5 @@
 # Overwatch MIDI converter
+**No longer maintained.**
 A tool for converting MIDI files into Overwatch workshop arrays, allowing you to play them ingame.  
 Example video: https://youtu.be/3bG8LEePLRA  
 [Link to this gamemode on workshop.codes](https://workshop.codes/ZPVWJ)  
